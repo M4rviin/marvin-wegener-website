@@ -389,17 +389,19 @@
     .manage-input:focus { outline: none; border-color: var(--teal); }
 
     .manage-pos-header {
-      display: grid; grid-template-columns: 1fr 1fr 72px 96px 28px;
+      display: grid; grid-template-columns: 1.2fr 1fr 68px 88px 96px auto;
       gap: 6px; padding: 8px 0; border-bottom: 0.5px solid var(--border); margin-bottom: 4px;
     }
     .manage-pos-header span { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
 
     .manage-pos-row {
-      display: grid; grid-template-columns: 1fr 1fr 72px 96px 28px;
-      gap: 6px; margin-bottom: 4px; align-items: center;
+      display: grid; grid-template-columns: 1.2fr 1fr 68px 88px 96px auto;
+      gap: 6px; align-items: center;
     }
+    .manage-pos-wrap { margin-bottom: 4px; }
     .mp-ticker-wrap { display: flex; gap: 4px; align-items: center; min-width: 0; }
     .mp-ticker-wrap .manage-pos-input { flex: 1; min-width: 0; }
+    .mp-actions { display: flex; gap: 4px; align-items: center; }
     .mp-lookup {
       background: none; border: 0.5px solid var(--border);
       color: var(--text-muted); cursor: pointer;
@@ -409,6 +411,21 @@
     }
     .mp-lookup:hover { border-color: var(--teal); color: var(--teal); }
     .mp-lookup:disabled { opacity: 0.5; cursor: default; }
+    .mp-sell-btn {
+      background: none; border: 0.5px solid var(--border);
+      color: var(--text-muted); cursor: pointer;
+      height: 28px; padding: 0 8px; flex-shrink: 0;
+      font-size: 10px; letter-spacing: 0.05em; white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .mp-sell-btn:hover { border-color: #c0524a; color: #c0524a; }
+    .manage-pos-delete {
+      background: none; border: 0.5px solid var(--border);
+      color: var(--text-muted); cursor: pointer;
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; transition: all 0.15s; flex-shrink: 0;
+    }
+    .manage-pos-delete:hover { border-color: #c0524a; color: #c0524a; }
     .manage-pos-input {
       background: var(--surface); border: 0.5px solid var(--border);
       padding: 7px 8px; font-size: 12px; color: var(--text);
@@ -418,13 +435,48 @@
     .manage-pos-input[type="number"] { -moz-appearance: textfield; }
     .manage-pos-input[type="number"]::-webkit-outer-spin-button,
     .manage-pos-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-    .manage-pos-delete {
-      background: none; border: 0.5px solid var(--border);
-      color: var(--text-muted); cursor: pointer;
-      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-      font-size: 14px; transition: all 0.15s; flex-shrink: 0;
+    .manage-pos-input[type="date"] { cursor: pointer; }
+
+    /* Inline-Sell-Form */
+    .sell-inline {
+      display: none; align-items: center; gap: 8px;
+      padding: 8px 10px; margin-top: 3px;
+      background: rgba(192,82,74,0.06); border: 0.5px solid rgba(192,82,74,0.25);
+      flex-wrap: wrap;
     }
-    .manage-pos-delete:hover { border-color: #c0524a; color: #c0524a; }
+    .sell-inline-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #c0524a; flex-shrink: 0; }
+    .sell-inline .manage-pos-input { width: 90px; flex-shrink: 0; }
+    .mp-sell-confirm {
+      background: rgba(29,158,117,0.15); border: 0.5px solid var(--teal);
+      color: var(--teal); cursor: pointer; padding: 5px 12px;
+      font-size: 11px; font-family: var(--sans); transition: all 0.15s; white-space: nowrap;
+    }
+    .mp-sell-confirm:hover { background: rgba(29,158,117,0.3); }
+    .mp-sell-cancel {
+      background: none; border: 0.5px solid var(--border);
+      color: var(--text-muted); cursor: pointer; padding: 5px 10px;
+      font-size: 11px; font-family: var(--sans); transition: all 0.15s;
+    }
+    .mp-sell-cancel:hover { border-color: var(--text); color: var(--text); }
+
+    /* Cash-Zeile im Manage Modal */
+    .manage-cash-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; margin-bottom: 16px;
+      background: rgba(93,202,165,0.07); border: 0.5px solid rgba(93,202,165,0.3);
+    }
+    .manage-cash-row .manage-label { flex: 1; }
+    .manage-cash-val { font-family: var(--serif); font-size: 16px; color: var(--teal); }
+    .manage-cash-clear {
+      background: none; border: 0.5px solid var(--border); color: var(--text-muted);
+      cursor: pointer; width: 24px; height: 24px; font-size: 12px; transition: all 0.15s;
+    }
+    .manage-cash-clear:hover { border-color: #c0524a; color: #c0524a; }
+
+    /* Broker-Card Cash-Zeile */
+    .broker-cash {
+      font-size: 10px; color: var(--teal); margin-top: 4px; letter-spacing: 0.03em;
+    }
 
     .manage-add-btn {
       margin-top: 10px; background: none;

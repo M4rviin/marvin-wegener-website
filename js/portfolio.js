@@ -9,28 +9,33 @@ const CRYPTO_IDS = {
 };
 
 // ── DEFAULT PORTFOLIO (Platzhalter — per Bearbeiten-Modal befüllen) ──
+// Position-Felder: ticker (Finnhub-Symbol), isin (optional), company, shares, avgPrice (€), purchaseDate
 const DEFAULT_PORTFOLIO = {
   tr: {
     positions: [
-      { ticker: 'NVDA',   company: 'NVIDIA Corp.',      shares: 0, avgPrice: 0 },
-      { ticker: 'MSFT',   company: 'Microsoft Corp.',   shares: 0, avgPrice: 0 },
-      { ticker: 'AAPL',   company: 'Apple Inc.',         shares: 0, avgPrice: 0 },
-      { ticker: 'V',      company: 'Visa Inc.',           shares: 0, avgPrice: 0 },
-      { ticker: 'NOVO-B', company: 'Novo Nordisk A/S',   shares: 0, avgPrice: 0 },
-      { ticker: 'JNJ',    company: 'Johnson & Johnson',   shares: 0, avgPrice: 0 },
-      { ticker: 'ASML',   company: 'ASML Holding',        shares: 0, avgPrice: 0 },
+      { ticker: 'NVDA',   isin: '', company: 'NVIDIA Corp.',      shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'MSFT',   isin: '', company: 'Microsoft Corp.',   shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'AAPL',   isin: '', company: 'Apple Inc.',         shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'V',      isin: '', company: 'Visa Inc.',           shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'NOVO-B', isin: '', company: 'Novo Nordisk A/S',   shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'JNJ',    isin: '', company: 'Johnson & Johnson',   shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'ASML',   isin: '', company: 'ASML Holding',        shares: 0, avgPrice: 0, purchaseDate: '' },
     ],
+    cashEur:        0,   // Erlöse aus Verkäufen
+    realizedGains:  [],  // Verkaufshistorie
   },
   sc: {
     positions: [
-      { ticker: 'META',  company: 'Meta Platforms',  shares: 0, avgPrice: 0 },
-      { ticker: 'AMZN',  company: 'Amazon.com Inc.', shares: 0, avgPrice: 0 },
-      { ticker: 'GOOGL', company: 'Alphabet Inc.',   shares: 0, avgPrice: 0 },
-      { ticker: 'ASML',  company: 'ASML Holding',    shares: 0, avgPrice: 0 },
-      { ticker: 'SAP',   company: 'SAP SE',           shares: 0, avgPrice: 0 },
-      { ticker: 'BNTX',  company: 'BioNTech SE',      shares: 0, avgPrice: 0 },
-      { ticker: 'ALV',   company: 'Allianz SE',        shares: 0, avgPrice: 0 },
+      { ticker: 'META',  isin: '', company: 'Meta Platforms',  shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'AMZN',  isin: '', company: 'Amazon.com Inc.', shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'GOOGL', isin: '', company: 'Alphabet Inc.',   shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'ASML',  isin: '', company: 'ASML Holding',    shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'SAP',   isin: '', company: 'SAP SE',           shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'BNTX',  isin: '', company: 'BioNTech SE',      shares: 0, avgPrice: 0, purchaseDate: '' },
+      { ticker: 'ALV',   isin: '', company: 'Allianz SE',        shares: 0, avgPrice: 0, purchaseDate: '' },
     ],
+    cashEur:       0,
+    realizedGains: [],
   },
 };
 
@@ -100,13 +105,22 @@ function loadPortfolioData() {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      // Migration: altes Format mit val/share/perf → neues Format mit shares/avgPrice
+      // Migration v1→v2: val/share/perf → shares/avgPrice
       if (parsed.tr?.positions?.[0]?.val !== undefined) {
         portfolioData = {
-          tr: { positions: (parsed.tr?.positions ?? []).map(p => ({ ticker: p.ticker, company: p.company, shares: 0, avgPrice: 0 })) },
-          sc: { positions: (parsed.sc?.positions ?? []).map(p => ({ ticker: p.ticker, company: p.company, shares: 0, avgPrice: 0 })) },
+          tr: { positions: (parsed.tr?.positions ?? []).map(p => ({ ticker: p.ticker, isin: '', company: p.company, shares: 0, avgPrice: 0, purchaseDate: '' })), cashEur: 0, realizedGains: [] },
+          sc: { positions: (parsed.sc?.positions ?? []).map(p => ({ ticker: p.ticker, isin: '', company: p.company, shares: 0, avgPrice: 0, purchaseDate: '' })), cashEur: 0, realizedGains: [] },
         };
       } else {
+        // Migration v2→v3: fehlende Felder ergänzen
+        ['tr', 'sc'].forEach(b => {
+          if (!parsed[b]) return;
+          parsed[b].cashEur       ??= 0;
+          parsed[b].realizedGains ??= [];
+          parsed[b].positions = (parsed[b].positions ?? []).map(p => ({
+            isin: '', purchaseDate: '', ...p,
+          }));
+        });
         portfolioData = parsed;
       }
       return;
@@ -156,13 +170,16 @@ function calcGrandTotal() {
 }
 
 function calcBrokerStats(brokerId) {
+  const broker    = brokerId !== 'et' ? portfolioData[brokerId] : null;
   const positions = brokerId === 'et'
     ? (etoroData.positions ?? [])
-    : (portfolioData[brokerId]?.positions ?? []);
-  const total    = positions.reduce((s, p) => s + (calcVal(p) ?? 0), 0);
+    : (broker?.positions ?? []);
+  const cashEur  = broker?.cashEur ?? 0;
+  const posVal   = positions.reduce((s, p) => s + (calcVal(p) ?? 0), 0);
+  const total    = posVal + cashEur;
   const cost     = positions.reduce((s, p) => s + p.shares * p.avgPrice, 0);
   const perf     = cost > 0 ? (total - cost) / cost * 100 : 0;
-  return { total, perf };
+  return { total, perf, cashEur };
 }
 
 // ── KURS-FETCH ──
@@ -255,14 +272,18 @@ function renderBrokerCards() {
   ];
 
   grid.innerHTML = brokers.map(b => {
-    const { total, perf } = calcBrokerStats(b.id);
+    const { total, perf, cashEur } = calcBrokerStats(b.id);
     const hasData = total > 0;
+    const cashLine = (cashEur > 0 && b.id !== 'et')
+      ? `<div class="broker-cash">+ <span class="private-val">${formatEuro(cashEur)}</span> Cash</div>`
+      : '';
     return `
       <div class="broker-card" data-broker="${b.id}">
         <div class="broker-name">${b.name}</div>
         <div class="broker-type">${b.type}</div>
         <div class="broker-value"><span class="private-val">${hasData ? formatEuro(total) : '— —'}</span></div>
         <div class="broker-perf ${perf >= 0 ? 'pos' : 'neg'}">${hasData ? (perf >= 0 ? '+' : '') + perf.toFixed(1) + ' %' : '—'}</div>
+        ${cashLine}
       </div>`;
   }).join('');
 }
@@ -637,18 +658,29 @@ function renderManageContent() {
     tab.classList.toggle('active', tab.dataset.broker === activeManageBroker);
   });
 
-  const data = pendingEdits[activeManageBroker]
-    ?? JSON.parse(JSON.stringify(portfolioData[activeManageBroker] ?? { positions: [] }));
+  const broker = portfolioData[activeManageBroker] ?? { positions: [], cashEur: 0 };
+  const data   = pendingEdits[activeManageBroker]
+    ?? JSON.parse(JSON.stringify(broker));
 
   const body = document.getElementById('manageBody');
   if (!body) return;
 
+  const cashLine = (data.cashEur > 0)
+    ? `<div class="manage-cash-row">
+        <span class="manage-label">Cash-Bestand (Verkaufserlöse)</span>
+        <span class="manage-cash-val private-val">${formatEuro(data.cashEur)}</span>
+        <button class="manage-cash-clear" title="Cash auf 0 setzen">✕</button>
+       </div>`
+    : '';
+
   body.innerHTML = `
+    ${cashLine}
     <div class="manage-pos-header">
-      <span>Ticker / ISIN</span>
+      <span>ISIN / WKN / Ticker</span>
       <span>Bezeichnung</span>
       <span>Stück</span>
       <span>Ø Kurs €</span>
+      <span>Kaufdatum</span>
       <span></span>
     </div>
     <div id="managePosList">
@@ -657,50 +689,152 @@ function renderManageContent() {
     <button class="manage-add-btn" id="manageAddPos">+ Position hinzufügen</button>`;
 
   attachManageListeners(body);
+
+  body.querySelector('.manage-cash-clear')?.addEventListener('click', () => {
+    collectCurrentTab();
+    pendingEdits[activeManageBroker].cashEur = 0;
+    renderManageContent();
+  });
 }
 
 function renderManagePosRow(p) {
-  return `<div class="manage-pos-row">
-    <div class="mp-ticker-wrap">
-      <input class="manage-pos-input mp-ticker" placeholder="MSFT" value="${p.ticker}" maxlength="20">
-      <button class="mp-lookup" title="Ticker/ISIN suchen">↗</button>
+  const displayId = p.isin || p.ticker || '';
+  return `<div class="manage-pos-wrap">
+    <div class="manage-pos-row">
+      <div class="mp-ticker-wrap">
+        <input class="manage-pos-input mp-isin" placeholder="ISIN / WKN / Ticker" value="${displayId}" maxlength="20" title="ISIN, WKN oder direkt den Börsenkürzel eingeben">
+        <button class="mp-lookup" title="Suchen — löst ISIN/WKN zum Ticker auf">↗</button>
+      </div>
+      <input class="manage-pos-input mp-company"   placeholder="Name"    value="${p.company      ?? ''}">
+      <input class="manage-pos-input mp-shares"    type="number" step="0.0001" placeholder="0"      value="${p.shares      || ''}">
+      <input class="manage-pos-input mp-avgprice"  type="number" step="0.01"   placeholder="0.00"   value="${p.avgPrice    || ''}">
+      <input class="manage-pos-input mp-date"      type="date"                                       value="${p.purchaseDate || ''}">
+      <div class="mp-actions">
+        <button class="mp-sell-btn" title="Position (teil-)verkaufen">↓ Sell</button>
+        <button class="manage-pos-delete" title="Löschen">✕</button>
+      </div>
     </div>
-    <input class="manage-pos-input mp-company" placeholder="Name" value="${p.company ?? ''}">
-    <input class="manage-pos-input mp-shares"   type="number" step="0.0001" placeholder="0"    value="${p.shares   || ''}">
-    <input class="manage-pos-input mp-avgprice" type="number" step="0.01"   placeholder="0.00" value="${p.avgPrice || ''}">
-    <button class="manage-pos-delete" title="Löschen">✕</button>
+    <div class="sell-inline" style="display:none">
+      <span class="sell-inline-label">Verkauf:</span>
+      <input class="manage-pos-input mp-sell-qty"   type="number" step="0.0001" placeholder="Stück">
+      <input class="manage-pos-input mp-sell-price" type="number" step="0.01"   placeholder="Kurs €">
+      <button class="mp-sell-confirm">✓ Bestätigen</button>
+      <button class="mp-sell-cancel">Abbrechen</button>
+    </div>
   </div>`;
 }
 
 function attachManageListeners(body) {
   body.querySelectorAll('.manage-pos-delete').forEach(btn =>
-    btn.addEventListener('click', () => btn.closest('.manage-pos-row').remove())
+    btn.addEventListener('click', () => btn.closest('.manage-pos-wrap').remove())
   );
   body.querySelectorAll('.mp-lookup').forEach(btn =>
     btn.addEventListener('click', () => lookupTicker(btn.closest('.manage-pos-row')))
   );
+  body.querySelectorAll('.mp-sell-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const wrap  = btn.closest('.manage-pos-wrap');
+      const form  = wrap.querySelector('.sell-inline');
+      const shown = form.style.display !== 'none';
+      form.style.display = shown ? 'none' : 'flex';
+      if (!shown) wrap.querySelector('.mp-sell-qty').focus();
+    });
+  });
+  body.querySelectorAll('.mp-sell-cancel').forEach(btn =>
+    btn.addEventListener('click', () => {
+      btn.closest('.sell-inline').style.display = 'none';
+    })
+  );
+  body.querySelectorAll('.mp-sell-confirm').forEach(btn =>
+    btn.addEventListener('click', () => confirmSell(btn.closest('.manage-pos-wrap')))
+  );
   document.getElementById('manageAddPos')?.addEventListener('click', () => {
     const list = document.getElementById('managePosList');
     const div  = document.createElement('div');
-    div.innerHTML = renderManagePosRow({ ticker: '', company: '', shares: 0, avgPrice: 0 });
-    const row = div.firstElementChild;
-    list.appendChild(row);
-    row.querySelector('.manage-pos-delete').addEventListener('click', () => row.remove());
-    row.querySelector('.mp-lookup').addEventListener('click', () => lookupTicker(row));
-    row.querySelector('.mp-ticker').focus();
+    div.innerHTML = renderManagePosRow({ ticker: '', isin: '', company: '', shares: 0, avgPrice: 0, purchaseDate: '' });
+    const wrap = div.firstElementChild;
+    list.appendChild(wrap);
+    attachManageListeners(wrap);
+    wrap.querySelector('.mp-isin').focus();
   });
+}
+
+// Inline-Verkauf bestätigen
+function confirmSell(wrap) {
+  const row      = wrap.querySelector('.manage-pos-row');
+  const isinVal  = row.querySelector('.mp-isin').value.trim().toUpperCase();
+  const sharesIn = row.querySelector('.mp-shares');
+  const avgIn    = row.querySelector('.mp-avgprice');
+  const sellQty  = parseFloat(wrap.querySelector('.mp-sell-qty').value)   || 0;
+  const sellKurs = parseFloat(wrap.querySelector('.mp-sell-price').value) || 0;
+
+  if (sellQty <= 0 || sellKurs <= 0) {
+    wrap.querySelector('.mp-sell-qty').style.borderColor = '#c0524a';
+    return;
+  }
+
+  const currentShares = parseFloat(sharesIn.value) || 0;
+  const avgPrice      = parseFloat(avgIn.value)     || 0;
+  const remaining     = parseFloat((currentShares - sellQty).toFixed(6));
+  const proceeds      = sellQty * sellKurs;
+
+  // Verkauf in pendingEdits verbuchen
+  collectCurrentTab();
+  const broker = pendingEdits[activeManageBroker];
+  if (!broker.realizedGains) broker.realizedGains = [];
+  broker.realizedGains.push({
+    id:         isinVal,
+    soldShares: sellQty,
+    buyPrice:   avgPrice,
+    sellPrice:  sellKurs,
+    gain:       (sellKurs - avgPrice) * sellQty,
+    date:       new Date().toISOString().split('T')[0],
+  });
+  broker.cashEur = (broker.cashEur || 0) + proceeds;
+
+  if (remaining <= 0.00001) {
+    // Vollverkauf: Position entfernen
+    wrap.remove();
+  } else {
+    // Teilverkauf: Stückzahl aktualisieren
+    sharesIn.value = remaining;
+    wrap.querySelector('.sell-inline').style.display = 'none';
+    wrap.querySelector('.mp-sell-qty').value   = '';
+    wrap.querySelector('.mp-sell-price').value = '';
+  }
+
+  // Neu rendern damit Cash-Zeile aktuell ist
+  collectCurrentTab();
+  renderManageContent();
 }
 
 function collectCurrentTab() {
   const positions = [];
-  document.querySelectorAll('.manage-pos-row').forEach(row => {
-    const ticker   = row.querySelector('.mp-ticker')?.value.trim().toUpperCase() ?? '';
-    const company  = row.querySelector('.mp-company')?.value.trim() ?? '';
-    const shares   = parseFloat(row.querySelector('.mp-shares')?.value)   || 0;
-    const avgPrice = parseFloat(row.querySelector('.mp-avgprice')?.value) || 0;
-    if (ticker) positions.push({ ticker, company, shares, avgPrice });
+  document.querySelectorAll('#managePosList .manage-pos-wrap').forEach(wrap => {
+    const row      = wrap.querySelector('.manage-pos-row');
+    const isinRaw  = row.querySelector('.mp-isin')?.value.trim().toUpperCase()    ?? '';
+    const company  = row.querySelector('.mp-company')?.value.trim()               ?? '';
+    const shares   = parseFloat(row.querySelector('.mp-shares')?.value)           || 0;
+    const avgPrice = parseFloat(row.querySelector('.mp-avgprice')?.value)         || 0;
+    const date     = row.querySelector('.mp-date')?.value                         ?? '';
+
+    if (!isinRaw) return;
+
+    // ISIN/WKN von Ticker trennen: ISIN = 12 Zeichen, WKN = 6 Zeichen, sonst Ticker
+    const isIsin = /^[A-Z]{2}[A-Z0-9]{10}$/.test(isinRaw);
+    const isWkn  = /^[A-Z0-9]{6}$/.test(isinRaw) && isinRaw.length === 6;
+    const isin   = (isIsin || isWkn) ? isinRaw : '';
+    // Ticker aus data-ticker Attribut (gesetzt nach Lookup), sonst ISIN/Eingabe selbst als Ticker
+    const ticker = row.querySelector('.mp-isin').dataset.ticker || (isIsin || isWkn ? '' : isinRaw);
+
+    positions.push({ ticker: ticker || isinRaw, isin, company, shares, avgPrice, purchaseDate: date });
   });
-  pendingEdits[activeManageBroker] = { positions };
+
+  const existing  = pendingEdits[activeManageBroker] ?? JSON.parse(JSON.stringify(portfolioData[activeManageBroker] ?? {}));
+  pendingEdits[activeManageBroker] = {
+    ...existing,
+    positions,
+  };
 }
 
 function saveManage() {
@@ -715,10 +849,10 @@ function saveManage() {
 // ISIN / WKN → Ticker-Suche via Worker
 async function lookupTicker(row) {
   if (!WORKER_URL) return;
-  const tickerInput  = row.querySelector('.mp-ticker');
+  const isinInput    = row.querySelector('.mp-isin');
   const companyInput = row.querySelector('.mp-company');
   const btn          = row.querySelector('.mp-lookup');
-  const q = tickerInput.value.trim();
+  const q = isinInput.value.trim();
   if (!q) return;
 
   btn.textContent = '…';
@@ -727,8 +861,13 @@ async function lookupTicker(row) {
     const r       = await fetch(`${WORKER_URL}/lookup?q=${encodeURIComponent(q)}`);
     const results = await r.json();
     if (results.length > 0) {
-      const best = results[0];
-      tickerInput.value  = best.symbol ?? best.displaySymbol ?? q;
+      const best   = results[0];
+      const ticker = best.symbol ?? best.displaySymbol ?? q;
+      // Ticker intern speichern, ISIN-Feld behält die ISIN/WKN
+      isinInput.dataset.ticker = ticker;
+      // Wenn kein ISIN-Format eingegeben: Ticker direkt anzeigen
+      const isIdentifier = /^[A-Z]{2}[A-Z0-9]{10}$/.test(q) || /^[A-Z0-9]{6}$/.test(q);
+      if (!isIdentifier) isinInput.value = ticker;
       companyInput.value = best.description ?? best.name ?? companyInput.value;
     }
   } catch(e) {
