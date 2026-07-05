@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio — Marvin Wegener</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── HERO (dunkler Bereich, unabhängig vom Dark Mode) ── */
+    .hero-wrap { background: #0f0e0c; padding: 24px 48px 28px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 48px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .hero-text h2 {
+      font-family: var(--serif);
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 1.2;
+      color: #f0ede6;
+      margin-bottom: 14px;
+    }
+    .hero-text p {
+      font-size: 13px;
+      color: rgba(240,237,230,0.5);
+      line-height: 1.7;
+      margin-bottom: 24px;
+      max-width: 260px;
+    }
+
+    /* Privacy-Button */
+    .privacy-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 0.5px solid rgba(93,202,165,0.45);
+      color: #5DCAA5;
+      padding: 9px 18px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-family: var(--sans);
+      font-weight: 500;
+      cursor: pointer;
+      background: none;
+      transition: all 0.25s ease;
+    }
+    .privacy-btn:hover          { background: rgba(93,202,165,0.07); border-color: #5DCAA5; }
+    .privacy-btn.unlocked       { border-color: rgba(93,202,165,0.7); background: rgba(93,202,165,0.1); }
+
+    /* Hero KPI-Karten */
+    .hero-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: rgba(255,255,255,0.06);
+      border: 0.5px solid rgba(255,255,255,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .stat-card    { background: #0f0e0c; padding: 24px 22px; transition: background 0.2s; }
+    .stat-card:hover { background: #161513; }
+    .stat-label   { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(240,237,230,0.3); margin-bottom: 10px; }
+    .stat-value   { font-family: var(--serif); font-size: 28px; font-weight: 400; color: #f0ede6; line-height: 1; margin-bottom: 4px; }
+    .stat-value.positive { color: #5DCAA5; }
+    .stat-sub     { font-size: 10px; color: rgba(240,237,230,0.3); letter-spacing: 0.05em; }
+
+    /* ── PRIVACY: geschwärzte Werte ── */
+    .private-val {
+      display: inline-block;
+      transition: filter 0.3s ease, opacity 0.3s ease;
+    }
+    body:not(.values-visible) .private-val {
+      filter: blur(8px);
+      opacity: 0.4;
+      user-select: none;
+      pointer-events: none;
+    }
+    body.values-visible .private-val {
+      filter: none;
+      opacity: 1;
+    }
+
+    /* PIN Modal CSS liegt in css/style.css (geteilt mit momente.html) */
+
+    /* ── CONTENT ── */
+    .content { max-width: 1200px; margin: 0 auto; padding: 52px 2rem 60px; }
+
+    /* Broker-Kacheln */
+    .broker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 52px;
+      cursor: pointer;
+    }
+    @media (max-width: 700px) { .broker-grid { grid-template-columns: 1fr; } }
+    .broker-card {
+      border: 0.5px solid var(--border);
+      padding: 24px;
+      background: var(--surface);
+      transition: border-color var(--t), background var(--t);
+    }
+    .broker-card:hover { border-color: var(--teal); }
+    .broker-name  { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+    .broker-type  { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px; }
+    .broker-value { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--text); margin-bottom: 4px; }
+    .broker-perf  { font-size: 11px; font-weight: 500; }
+    .broker-perf.pos { color: var(--teal); }
+    .broker-perf.neg { color: #c0524a; }
+
+    /* ── TREEMAP ── */
+    .alloc-section { margin-bottom: 52px; }
+    .treemap {
+      width: 100%;
+      height: 220px;
+      display: flex;
+      gap: 3px;
+      overflow: hidden;
+    }
+    .tm-col  { display: flex; flex-direction: column; gap: 3px; }
+    .tm-cell {
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      display: flex;
+      align-items: flex-end;
+      padding: 10px 12px;
+      transition: filter 0.2s;
+      flex-shrink: 0;
+    }
+    .tm-cell:hover { filter: brightness(1.12); }
+    .tm-cell-inner { position: relative; z-index: 1; }
+    .tm-name { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.85); font-weight: 500; display: block; }
+    .tm-pct  { font-family: var(--serif); font-size: 18px; color: rgba(255,255,255,0.95); display: block; line-height: 1.1; }
+    .tm-val  { font-size: 10px; color: rgba(255,255,255,0.45); display: block; margin-top: 2px; }
+
+    .tm-aktien { background: linear-gradient(135deg, #1a3528, #0f2118); }
+    .tm-etf    { background: linear-gradient(135deg, #1e2d3a, #111e28); }
+    .tm-krypto { background: linear-gradient(135deg, #2a2218, #1a1510); }
+    .tm-cash   { background: linear-gradient(135deg, #252520, #181815); }
+
+    /* ── MONATS-HEATMAP ── */
+    .heatmap-section { margin-bottom: 52px; }
+    .heatmap-block   { margin-bottom: 36px; }
+    .heatmap-sub     { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+
+    .month-heatmap {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+    }
+    @media (max-width: 600px) { .month-heatmap { grid-template-columns: repeat(4, 1fr); } }
+    .month-cell {
+      position: relative;
+      padding: 12px 10px 10px;
+      border: 0.5px solid var(--border);
+      cursor: default;
+      transition: border-color 0.2s;
+    }
+    .month-cell:hover { border-color: var(--teal); }
+    .month-name { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; display: block; }
+    .month-perf { font-family: var(--serif); font-size: 17px; font-weight: 400; }
+    .month-perf.pos  { color: var(--teal); }
+    .month-perf.neg  { color: #c0524a; }
+    .month-perf.flat { color: var(--text-muted); }
+    .month-bar  { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; }
+
+    /* ── TOP 10 POSITIONEN ── */
+    .positions-wrap { margin-bottom: 52px; border: 0.5px solid var(--border); overflow-x: auto; }
+    .pos-header {
+      display: grid;
+      grid-template-columns: 28px 1fr 100px 110px 70px 110px;
+      padding: 10px 16px;
+      border-bottom: 0.5px solid var(--border);
+      background: var(--surface);
+      min-width: 560px;
+    }
+    .pos-header span {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .pos-header .pos-val,
+    .pos-header .pos-share,
+    .pos-header .pos-perf { text-align: right; }
+
+    .pos-row {
+      display: grid;
+      grid-template-columns: 28px 1fr 100px 110px 70px 110px;
+      padding: 12px 16px;
+      border-bottom: 0.5px solid var(--border);
+      align-items: center;
+      transition: background var(--t);
+      min-width: 560px;
+    }
+    .pos-row:last-child { border-bottom: none; }
+    .pos-row:hover      { background: var(--surface); }
+
+    .pos-rank       { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .pos-ticker     { font-size: 13px; font-weight: 500; color: var(--text); letter-spacing: 0.02em; }
+    .pos-company    { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+    .pos-broker-tag {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border: 0.5px solid var(--border);
+      padding: 2px 6px;
+      display: inline-block;
+    }
+    .pos-value     { font-size: 13px; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+    .pos-share-val { font-size: 12px; color: var(--text-sec); text-align: right; }
+    .pos-perf-val  { font-size: 12px; font-weight: 500; text-align: right; }
+    .pos-perf-val.pos { color: var(--teal); }
+    .pos-perf-val.neg { color: #c0524a; }
+
+    /* ── DIVIDENDEN ── */
+    .div-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 600px) { .div-summary { grid-template-columns: 1fr 1fr; } }
+    .div-card {
+      border: 0.5px solid var(--border);
+      padding: 20px;
+      background: var(--surface);
+      transition: border-color var(--t);
+    }
+    .div-card:hover        { border-color: var(--teal); }
+    .div-card-label        { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+    .div-card-val          { font-family: var(--serif); font-size: 24px; font-weight: 400; color: var(--text); }
+    .div-card-sub          { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+    .div-list              { border: 0.5px solid var(--border); margin-bottom: 52px; overflow-x: auto; }
+    .div-list-header {
+      display: grid;
+      grid-template-columns: 80px 1fr 100px 110px;
+      padding: 10px 16px;
+      border-bottom: 0.5px solid var(--border);
+      background: var(--surface);
+      min-width: 400px;
+    }
+    .div-list-header span  { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); }
+    .div-list-header span:nth-child(3),
+    .div-list-header span:nth-child(4) { text-align: right; }
+    .div-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 100px 110px;
+      padding: 11px 16px;
+      border-bottom: 0.5px solid var(--border);
+      align-items: center;
+      transition: background var(--t);
+      min-width: 400px;
+    }
+    .div-row:last-child { border-bottom: none; }
+    .div-row:hover      { background: var(--surface); }
+    .div-date    { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .div-ticker  { font-size: 12px; font-weight: 500; color: var(--text); }
+    .div-company { font-size: 10px; color: var(--text-muted); }
+    .div-amount  { font-size: 12px; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+    .div-yield   { font-size: 11px; color: var(--text-muted); text-align: right; }
+
+    /* Tracker */
+    .tracker-box {
+      border: 0.5px solid var(--border);
+      padding: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      transition: border-color var(--t);
+      gap: 24px;
+    }
+    .tracker-box:hover { border-color: var(--teal); }
+    .tracker-info h3   { font-family: var(--serif); font-size: 20px; font-weight: 400; margin-bottom: 6px; }
+    .tracker-info p    { font-size: 12px; color: var(--text-sec); line-height: 1.6; max-width: 360px; }
+    .tracker-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--teal);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 2px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: var(--sans);
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .tracker-link:hover { opacity: 0.85; }
+
+    /* ── HERO BUTTONS ── */
+    .hero-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .manage-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 0.5px solid rgba(255,255,255,0.15);
+      color: rgba(240,237,230,0.55);
+      padding: 9px 18px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-family: var(--sans);
+      font-weight: 500;
+      cursor: pointer;
+      background: none;
+      transition: all 0.25s ease;
+    }
+    .manage-btn:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.3);
+      color: rgba(240,237,230,0.9);
+    }
+
+    /* ── PORTFOLIO BEARBEITEN MODAL ── */
+    .manage-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .manage-overlay.visible { opacity: 1; pointer-events: all; }
+
+    .manage-modal {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      width: 100%; max-width: 760px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    .manage-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 24px 28px 20px;
+      border-bottom: 0.5px solid var(--border);
+      flex-shrink: 0;
+    }
+    .manage-title    { font-family: var(--serif); font-size: 20px; font-weight: 400; margin-bottom: 3px; }
+    .manage-subtitle { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+
+    .manage-tabs {
+      display: flex;
+      border-bottom: 0.5px solid var(--border);
+      padding: 0 28px;
+      flex-shrink: 0;
+    }
+    .manage-tab {
+      background: none; border: none;
+      border-bottom: 1.5px solid transparent;
+      padding: 12px 0; margin-right: 24px;
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); cursor: pointer; font-family: var(--sans);
+      transition: all 0.2s; margin-bottom: -0.5px;
+    }
+    .manage-tab:hover  { color: var(--text); }
+    .manage-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+    .manage-body { overflow-y: auto; flex: 1; padding: 24px 28px; }
+
+    .manage-overview { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+    .manage-field    { display: flex; flex-direction: column; gap: 6px; }
+    .manage-label    { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); }
+    .manage-input {
+      background: var(--surface); border: 0.5px solid var(--border);
+      padding: 10px 12px; font-size: 13px; color: var(--text);
+      font-family: var(--sans); width: 100%; transition: border-color 0.2s;
+    }
+    .manage-input:focus { outline: none; border-color: var(--teal); }
+
+    .manage-pos-header {
+      display: grid; grid-template-columns: 72px 1fr 88px 68px 80px 28px;
+      gap: 6px; padding: 8px 0; border-bottom: 0.5px solid var(--border); margin-bottom: 4px;
+    }
+    .manage-pos-header span { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+
+    .manage-pos-row {
+      display: grid; grid-template-columns: 72px 1fr 88px 68px 80px 28px;
+      gap: 6px; margin-bottom: 4px; align-items: center;
+    }
+    .manage-pos-input {
+      background: var(--surface); border: 0.5px solid var(--border);
+      padding: 7px 8px; font-size: 12px; color: var(--text);
+      font-family: var(--sans); width: 100%; transition: border-color 0.2s;
+    }
+    .manage-pos-input:focus { outline: none; border-color: var(--teal); }
+    .manage-pos-delete {
+      background: none; border: 0.5px solid var(--border);
+      color: var(--text-muted); cursor: pointer;
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; transition: all 0.15s; flex-shrink: 0;
+    }
+    .manage-pos-delete:hover { border-color: #c0524a; color: #c0524a; }
+
+    .manage-add-btn {
+      margin-top: 10px; background: none;
+      border: 0.5px dashed var(--border); color: var(--text-muted);
+      cursor: pointer; padding: 10px; width: 100%;
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: var(--sans); transition: all 0.2s;
+    }
+    .manage-add-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+    .manage-footer {
+      padding: 16px 28px; border-top: 0.5px solid var(--border);
+      display: flex; justify-content: flex-end; flex-shrink: 0;
+    }
+    .manage-save {
+      background: var(--teal); color: #fff; border: none;
+      padding: 10px 28px; border-radius: 2px;
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: var(--sans); font-weight: 500; cursor: pointer; transition: opacity 0.2s;
+    }
+    .manage-save:hover { opacity: 0.85; }
+
+    /* ── BROKER DETAIL MODAL ── */
+    .broker-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .broker-modal-overlay.visible { opacity: 1; pointer-events: all; }
+
+    .broker-modal {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      width: 100%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .bm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 28px 32px 24px;
+      border-bottom: 0.5px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+    .bm-title    { font-family: var(--serif); font-size: 24px; font-weight: 400; margin-bottom: 4px; }
+    .bm-subtitle { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+    .bm-close {
+      background: none;
+      border: 0.5px solid var(--border);
+      width: 32px; height: 32px;
+      cursor: pointer;
+      color: var(--text-sec);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .bm-close:hover { border-color: var(--text); color: var(--text); }
+
+    .bm-body { padding: 28px 32px; }
+
+    .bm-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 0.5px solid var(--border);
+      margin-bottom: 32px;
+    }
+    @media (max-width: 600px) { .bm-kpis { grid-template-columns: repeat(2, 1fr); } }
+    .bm-kpi           { background: var(--bg); padding: 16px 18px; }
+    .bm-kpi-label     { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .bm-kpi-val       { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--text); line-height: 1; }
+    .bm-kpi-val.pos   { color: var(--teal); }
+    .bm-kpi-val.neg   { color: #c0524a; }
+    .bm-kpi-sub       { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+    .bm-chart-wrap    { border: 0.5px solid var(--border); padding: 20px; margin-bottom: 32px; background: var(--surface); }
+    .bm-chart-label   { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+    .bm-chart-svg     { width: 100%; height: 160px; overflow: visible; }
+
+    .bm-highlights    { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+    .bm-highlight     { border: 0.5px solid var(--border); padding: 18px 20px; background: var(--surface); }
+    .bm-hl-tag        { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 10px; }
+    .bm-hl-tag.best   { color: var(--teal); }
+    .bm-hl-tag.worst  { color: #c0524a; }
+    .bm-hl-ticker     { font-size: 18px; font-family: var(--serif); font-weight: 400; color: var(--text); margin-bottom: 2px; }
+    .bm-hl-company    { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+    .bm-hl-perf       { font-size: 22px; font-family: var(--serif); font-weight: 400; }
+    .bm-hl-perf.pos   { color: var(--teal); }
+    .bm-hl-perf.neg   { color: #c0524a; }
+
+    .bm-sectors       { margin-bottom: 32px; }
+    .bm-sector-row    { display: grid; grid-template-columns: 140px 1fr 56px; gap: 12px; align-items: center; margin-bottom: 10px; }
+    .bm-sector-name   { font-size: 12px; color: var(--text-sec); }
+    .bm-sector-track  { height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .bm-sector-bar    { height: 100%; background: var(--teal); border-radius: 2px; opacity: 0.65; }
+    .bm-sector-pct    { font-size: 11px; color: var(--text-muted); text-align: right; }
+
+    .bm-section-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+    .bm-section-label::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+
+    .bm-pos-header {
+      display: grid;
+      grid-template-columns: 1fr 90px 80px 90px;
+      padding: 8px 0;
+      border-bottom: 0.5px solid var(--border);
+      margin-bottom: 4px;
+    }
+    .bm-pos-header span { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+    .bm-pos-header span:nth-child(n+2) { text-align: right; }
+    .bm-pos-row {
+      display: grid;
+      grid-template-columns: 1fr 90px 80px 90px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--border);
+      align-items: center;
+    }
+    .bm-pos-row:last-child { border-bottom: none; }
+    .bm-pos-ticker  { font-size: 12px; font-weight: 500; color: var(--text); }
+    .bm-pos-company { font-size: 10px; color: var(--text-muted); }
+    .bm-pos-val     { font-size: 12px; color: var(--text); text-align: right; }
+    .bm-pos-share   { font-size: 11px; color: var(--text-sec); text-align: right; }
+    .bm-pos-perf    { font-size: 12px; font-weight: 500; text-align: right; }
+    .bm-pos-perf.pos { color: var(--teal); }
+    .bm-pos-perf.neg { color: #c0524a; }
+  </style>
+</head>
+<body>
+  <!-- Dark Mode FOUC-Schutz -->
+  <script>if(localStorage.getItem('mw-dark')==='1')document.body.classList.add('dark');</script>
+
+  <!-- PIN MODAL -->
+  <div class="pin-overlay" id="pinOverlay">
+    <div class="pin-modal">
+      <h3>Werte anzeigen</h3>
+      <p>PIN eingeben um Portfoliowerte<br>sichtbar zu machen.</p>
+      <div class="pin-error-msg" id="pinError"></div>
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot" id="d0"></div>
+        <div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div>
+        <div class="pin-dot" id="d3"></div>
+      </div>
+      <div class="pin-pad" id="pinPad">
+        <button class="pin-key" data-key="1">1</button>
+        <button class="pin-key" data-key="2">2</button>
+        <button class="pin-key" data-key="3">3</button>
+        <button class="pin-key" data-key="4">4</button>
+        <button class="pin-key" data-key="5">5</button>
+        <button class="pin-key" data-key="6">6</button>
+        <button class="pin-key" data-key="7">7</button>
+        <button class="pin-key" data-key="8">8</button>
+        <button class="pin-key" data-key="9">9</button>
+        <button class="pin-key" data-key="del" style="font-size:13px;">⌫</button>
+        <button class="pin-key" data-key="0">0</button>
+        <button class="pin-key" data-key="del" style="font-size:11px;letter-spacing:0.05em;">DEL</button>
+      </div>
+      <button class="pin-cancel" id="pinCancel">Abbrechen</button>
+    </div>
+  </div>
+
+  <!-- PORTFOLIO BEARBEITEN MODAL -->
+  <div class="manage-overlay" id="manageModal">
+    <div class="manage-modal">
+      <div class="manage-header">
+        <div>
+          <div class="manage-title">Portfolio bearbeiten</div>
+          <div class="manage-subtitle">Trade Republic · Scalable Capital</div>
+        </div>
+        <button class="bm-close" id="manageClose">✕</button>
+      </div>
+      <div class="manage-tabs" id="manageTabs">
+        <button class="manage-tab active" data-broker="tr">Trade Republic</button>
+        <button class="manage-tab" data-broker="sc">Scalable Capital</button>
+      </div>
+      <div class="manage-body" id="manageBody">
+        <!-- JS-rendered -->
+      </div>
+      <div class="manage-footer">
+        <button class="manage-save" id="manageSave">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BROKER DETAIL MODAL -->
+  <div class="broker-modal-overlay" id="brokerModal">
+    <div class="broker-modal">
+      <div class="bm-header">
+        <div>
+          <div class="bm-title" id="bmTitle"></div>
+          <div class="bm-subtitle" id="bmSubtitle"></div>
+        </div>
+        <button class="bm-close" id="bmClose">✕</button>
+      </div>
+      <div class="bm-body">
+        <div class="bm-kpis" id="bmKpis"></div>
+        <div class="bm-chart-wrap">
+          <div class="bm-chart-label">Portfolio-Entwicklung — 12 Monate</div>
+          <svg class="bm-chart-svg" id="bmChart" viewBox="0 0 840 160" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="bm-section-label">Ausreißer</div>
+        <div class="bm-highlights" id="bmHighlights"></div>
+        <div class="bm-section-label">Sektoren</div>
+        <div class="bm-sectors" id="bmSectors"></div>
+        <div class="bm-section-label">Positionen</div>
+        <div class="bm-pos-header">
+          <span>Position</span>
+          <span>Wert</span>
+          <span>Anteil</span>
+          <span>Performance</span>
+        </div>
+        <div id="bmPositions"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="site-header"></div>
+
+  <!-- HERO -->
+  <div class="hero-wrap">
+    <div class="hero">
+      <div class="hero-text">
+        <h2>Mein<br>Portfolio.</h2>
+        <p>Transparenz über meine Investments – aufgeteilt auf Trade Republic, Scalable Capital und eToro.</p>
+        <div class="hero-btns">
+          <button class="privacy-btn" id="privacyBtn">
+            <svg id="privacyIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+            <span id="privacyLabel">Werte anzeigen</span>
+          </button>
+          <button class="manage-btn" id="manageBtn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Bearbeiten
+          </button>
+        </div>
+      </div>
+      <!-- PLATZHALTER: KPI-Werte — werden per JS aus portfolioData befüllt -->
+      <div class="hero-stats">
+        <div class="stat-card">
+          <div class="stat-label">Gesamtwert</div>
+          <div class="stat-value"><span class="private-val" id="heroGesamtwert">€ 48.320</span></div>
+          <div class="stat-sub">Alle Broker</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Performance</div>
+          <div class="stat-value positive">+18,4 %</div>
+          <div class="stat-sub">Gesamt</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Positionen</div>
+          <div class="stat-value" id="heroPosCount">34</div>
+          <div class="stat-sub">Aktiv</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Transaktionen</div>
+          <div class="stat-value">4.813</div>
+          <div class="stat-sub">Gesamt importiert</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="section-label">Broker</div>
+    <!-- PLATZHALTER: Broker-Werte -->
+    <div class="broker-grid" id="brokerGrid">
+      <div class="broker-card" data-broker="tr">
+        <div class="broker-name">Trade Republic</div>
+        <div class="broker-type">CSV Export</div>
+        <div class="broker-value"><span class="private-val">€ 21.840</span></div>
+        <div class="broker-perf pos">+22,1 %</div>
+      </div>
+      <div class="broker-card" data-broker="sc">
+        <div class="broker-name">Scalable Capital</div>
+        <div class="broker-type">CSV Export</div>
+        <div class="broker-value"><span class="private-val">€ 18.290</span></div>
+        <div class="broker-perf pos">+14,8 %</div>
+      </div>
+      <div class="broker-card" data-broker="et">
+        <div class="broker-name">eToro</div>
+        <div class="broker-type">API</div>
+        <div class="broker-value"><span class="private-val">€ 8.190</span></div>
+        <div class="broker-perf pos">+11,3 %</div>
+      </div>
+    </div>
+
+    <div class="alloc-section">
+      <div class="section-label">Allokation</div>
+      <div class="treemap" id="treemap"></div>
+    </div>
+
+    <div class="heatmap-section">
+      <div class="section-label">Performance</div>
+      <div class="heatmap-block">
+        <div class="heatmap-sub">Monatlich — 2025</div>
+        <div class="month-heatmap" id="monthHeatmap"></div>
+      </div>
+    </div>
+
+    <div class="section-label">Top 10 Positionen</div>
+    <div class="positions-wrap">
+      <div class="pos-header">
+        <span class="pos-rank">#</span>
+        <span class="pos-name">Position</span>
+        <span class="pos-broker">Broker</span>
+        <span class="pos-val">Wert</span>
+        <span class="pos-share">Anteil</span>
+        <span class="pos-perf">Performance</span>
+      </div>
+      <div id="posRows"></div>
+    </div>
+
+    <div class="section-label" style="margin-top:52px">Dividenden YTD</div>
+    <div class="div-summary" id="divSummary"></div>
+    <div class="div-list" id="divList"></div>
+
+    <div class="section-label">Tracker</div>
+    <div class="tracker-box">
+      <div class="tracker-info">
+        <h3>Portfolio Tracker</h3>
+        <p>Detaillierte Ansicht aller Positionen, Performance-Analyse, Dividenden und Transaktionshistorie – live aus meinem eigenen Tool.</p>
+      </div>
+      <a href="/tracker" class="tracker-link">
+        Tracker öffnen
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script src="config/config.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/portfolio.js"></script>
+</body>
+</html>

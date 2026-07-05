@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Momente — Marvin Wegener</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── HERO (dunkler Bereich, unabhängig vom Dark Mode) ── */
+    .hero-wrap { background: #0f0e0c; padding: 24px 48px 28px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1.7fr;
+      gap: 40px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .hero-text h2 {
+      font-family: var(--serif);
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 1.2;
+      color: #f0ede6;
+      margin-bottom: 14px;
+    }
+    .hero-text p {
+      font-size: 13px;
+      color: rgba(240,237,230,0.5);
+      line-height: 1.65;
+      margin-bottom: 28px;
+      max-width: 200px;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 0.5px solid rgba(93,202,165,0.45);
+      color: #5DCAA5;
+      padding: 10px 20px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-family: var(--sans);
+      font-weight: 500;
+      cursor: pointer;
+      background: none;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+    .hero-cta:hover { background: rgba(93,202,165,0.07); border-color: #5DCAA5; }
+    .hero-cta svg { transition: transform 0.2s ease; }
+    .hero-cta:hover svg { transform: translateX(3px); }
+
+    .hero-img { position: relative; border-radius: 2px; overflow: hidden; }
+    .hero-img-ph {
+      width: 100%;
+      aspect-ratio: 16/8;
+      /* PLATZHALTER: Titelbild */
+      background: linear-gradient(135deg, #1a2a22 0%, #0d1a14 50%, #111 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .hero-img-ph svg  { opacity: 0.1; }
+    .hero-img-ph span {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
+    }
+    .hero-dots { position: absolute; bottom: 14px; right: 16px; display: flex; gap: 6px; }
+    .hero-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hero-dot.active { background: rgba(255,255,255,0.8); }
+
+    /* ── KATEGORIE-KACHELN ── */
+    .cat-section { max-width: 1200px; margin: 0 auto; padding: 36px 2rem 0; }
+
+    .cat-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .cat-label-text {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    /* Bearbeiten-Button immer sichtbar */
+    .gallery-edit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 0.5px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: var(--sans);
+      cursor: pointer;
+      padding: 5px 10px;
+      transition: all 0.2s;
+    }
+    .gallery-edit-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 800px) { .categories { grid-template-columns: repeat(2, 1fr); } }
+
+    .cat-card {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      border-radius: 2px;
+      aspect-ratio: 4/3;
+      background: #111;
+      transition: transform 0.35s ease;
+    }
+    .cat-card:hover { transform: translateY(-2px); }
+    .cat-bg {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+    .cat-card:hover .cat-bg { transform: scale(1.05); }
+
+    .cat-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.05) 60%, transparent 100%);
+    }
+    .cat-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px; }
+    .cat-icon    { margin-bottom: 6px; opacity: 0.6; }
+    .cat-name    { font-family: var(--serif); font-size: 17px; font-weight: 400; color: #f0ede6; margin-bottom: 3px; }
+    .cat-count   { font-size: 10px; color: rgba(240,237,230,0.4); letter-spacing: 0.05em; }
+
+    /* ── GALERIE ── */
+    .gallery-section { max-width: 1200px; margin: 0 auto; padding: 52px 2rem 60px; }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 0.5px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 36px;
+    }
+    .section-header h3 { font-family: var(--serif); font-size: 22px; font-weight: 400; }
+    .section-header span { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+
+    .trip-group  { margin-bottom: 52px; }
+    .trip-label  {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .trip-label::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+
+    .masonry { columns: 3; column-gap: 12px; }
+    @media (max-width: 800px) { .masonry { columns: 2; } }
+    @media (max-width: 480px) { .masonry { columns: 1; } }
+
+    .photo-item {
+      break-inside: avoid;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      border-radius: 2px;
+      border: 0.5px solid var(--border);
+      transition: border-color var(--t);
+    }
+    .photo-item:hover { border-color: transparent; }
+
+    .photo-img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(160deg, transparent 45%, rgba(0,0,0,0.55));
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      display: flex;
+      align-items: flex-end;
+      padding: 14px;
+    }
+    .photo-item:hover .overlay { opacity: 1; }
+    .ov-inner { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; }
+    .ov-loc   { font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(255,255,255,0.93); font-weight: 500; }
+    .ov-yr    { font-size: 11px; color: rgba(255,255,255,0.45); }
+
+    /* ── GALERIE BEARBEITEN MODAL ── */
+    .gallery-modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .gallery-modal-overlay.visible { opacity: 1; pointer-events: all; }
+
+    .gallery-modal {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      width: 100%; max-width: 480px;
+    }
+    .gm-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 22px 26px 18px;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .gm-title    { font-family: var(--serif); font-size: 18px; font-weight: 400; }
+    .gm-subtitle { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+    .gm-body     { padding: 24px 26px; }
+    .gm-row {
+      display: grid; grid-template-columns: 80px 1fr;
+      gap: 12px; align-items: center; margin-bottom: 10px;
+    }
+    .gm-row-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+    .gm-input {
+      background: var(--surface); border: 0.5px solid var(--border);
+      padding: 8px 12px; font-size: 13px; color: var(--text);
+      font-family: var(--sans); width: 100%; transition: border-color 0.2s;
+    }
+    .gm-input:focus { outline: none; border-color: var(--teal); }
+    .gm-footer {
+      padding: 16px 26px; border-top: 0.5px solid var(--border);
+      display: flex; justify-content: flex-end;
+    }
+    .gm-save {
+      background: var(--teal); color: #fff; border: none;
+      padding: 9px 22px; font-size: 11px; letter-spacing: 0.1em;
+      text-transform: uppercase; font-family: var(--sans); font-weight: 500;
+      cursor: pointer; border-radius: 2px; transition: opacity 0.2s;
+    }
+    .gm-save:hover { opacity: 0.85; }
+    .bm-close {
+      background: none; border: 0.5px solid var(--border);
+      width: 30px; height: 30px; cursor: pointer;
+      color: var(--text-sec); font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .bm-close:hover { border-color: var(--text); color: var(--text); }
+  </style>
+</head>
+<body>
+  <!-- Dark Mode FOUC-Schutz -->
+  <script>if(localStorage.getItem('mw-dark')==='1')document.body.classList.add('dark');</script>
+
+  <!-- PIN MODAL -->
+  <div class="pin-overlay" id="pinOverlay">
+    <div class="pin-modal">
+      <h3>Bearbeiten</h3>
+      <p>PIN eingeben um<br>Änderungen vorzunehmen.</p>
+      <div class="pin-error-msg" id="pinError"></div>
+      <div class="pin-dots">
+        <div class="pin-dot" id="d0"></div>
+        <div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div>
+        <div class="pin-dot" id="d3"></div>
+      </div>
+      <div class="pin-pad" id="pinPad">
+        <button class="pin-key" data-key="1">1</button>
+        <button class="pin-key" data-key="2">2</button>
+        <button class="pin-key" data-key="3">3</button>
+        <button class="pin-key" data-key="4">4</button>
+        <button class="pin-key" data-key="5">5</button>
+        <button class="pin-key" data-key="6">6</button>
+        <button class="pin-key" data-key="7">7</button>
+        <button class="pin-key" data-key="8">8</button>
+        <button class="pin-key" data-key="9">9</button>
+        <button class="pin-key" data-key="del" style="font-size:13px;">⌫</button>
+        <button class="pin-key" data-key="0">0</button>
+        <button class="pin-key" data-key="del" style="font-size:11px;letter-spacing:0.05em;">DEL</button>
+      </div>
+      <button class="pin-cancel" id="pinCancel">Abbrechen</button>
+    </div>
+  </div>
+
+  <!-- GALERIE BEARBEITEN MODAL -->
+  <div class="gallery-modal-overlay" id="galleryModal">
+    <div class="gallery-modal">
+      <div class="gm-header">
+        <div>
+          <div class="gm-title">Galerien bearbeiten</div>
+          <div class="gm-subtitle">Kategorienamen anpassen</div>
+        </div>
+        <button class="bm-close" id="galleryModalClose">✕</button>
+      </div>
+      <div class="gm-body" id="galleryModalBody">
+        <!-- JS-rendered -->
+      </div>
+      <div class="gm-footer">
+        <button class="gm-save" id="galleryModalSave">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="site-header"></div>
+
+  <!-- HERO -->
+  <div class="hero-wrap">
+    <div class="hero">
+      <div class="hero-text">
+        <!-- PLATZHALTER: Hero-Text — Optionen am Ende dieser Datei -->
+        <h2>Momente.<br>Festgehalten.</h2>
+        <p>Ausgewählte Aufnahmen aus Orten, die etwas hinterlassen haben.</p>
+        <a href="#galerien" class="hero-cta">
+          Momente ansehen
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+      <div class="hero-img">
+        <div class="hero-img-ph">
+          <img src="https://picsum.photos/seed/travel-moments-hero/1200/500"
+               alt="Momente Hero"
+               style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;">
+        </div>
+        <div class="hero-dots">
+          <div class="hero-dot active"></div>
+          <div class="hero-dot"></div>
+          <div class="hero-dot"></div>
+          <div class="hero-dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KATEGORIE-KACHELN -->
+  <div class="cat-section" id="galerien">
+    <div class="cat-label-row">
+      <span class="cat-label-text">Galerien</span>
+      <button class="gallery-edit-btn" id="galleryEditBtn">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Bearbeiten
+      </button>
+    </div>
+    <div class="categories" id="categoriesGrid">
+      <!-- JS-rendered aus momente.js -->
+    </div>
+  </div>
+
+  <!-- GALERIE -->
+  <div class="gallery-section">
+    <div class="section-header">
+      <h3 id="gallery-title">Alle Momente</h3>
+      <span id="count"></span>
+    </div>
+    <div id="gallery"></div>
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script src="config/config.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/momente.js"></script>
+</body>
+</html>
