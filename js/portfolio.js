@@ -1,91 +1,40 @@
-// ── PORTFOLIO-STANDARDDATEN (PLATZHALTER — werden durch localStorage überschrieben) ──
+// ── CRYPTO-MAPPING (Ticker → CoinGecko ID) ──
+const CRYPTO_IDS = {
+  'BTC':  'bitcoin',
+  'ETH':  'ethereum',
+  'XRP':  'ripple',
+  'SOL':  'solana',
+  'DOGE': 'dogecoin',
+  'ADA':  'cardano',
+};
+
+// ── DEFAULT PORTFOLIO (Platzhalter — per Bearbeiten-Modal befüllen) ──
 const DEFAULT_PORTFOLIO = {
   tr: {
-    total: 21840, perf: 22.1,
     positions: [
-      { ticker: 'NVDA',   company: 'NVIDIA Corp.',     val: 5920, share: 27.1, perf: 118.7 },
-      { ticker: 'MSFT',   company: 'Microsoft Corp.',  val: 4210, share: 19.3, perf:  42.3  },
-      { ticker: 'AAPL',   company: 'Apple Inc.',        val: 3540, share: 16.2, perf:  28.4  },
-      { ticker: 'V',      company: 'Visa Inc.',          val: 2890, share: 13.2, perf:  22.1  },
-      { ticker: 'NOVO-B', company: 'Novo Nordisk A/S',  val: 2180, share: 10.0, perf: -18.3  },
-      { ticker: 'JNJ',    company: 'Johnson & Johnson',  val: 1640, share:  7.5, perf:   8.2  },
-      { ticker: 'ASML',   company: 'ASML Holding',      val: 1460, share:  6.7, perf:  12.7  },
+      { ticker: 'NVDA',   company: 'NVIDIA Corp.',      shares: 0, avgPrice: 0 },
+      { ticker: 'MSFT',   company: 'Microsoft Corp.',   shares: 0, avgPrice: 0 },
+      { ticker: 'AAPL',   company: 'Apple Inc.',         shares: 0, avgPrice: 0 },
+      { ticker: 'V',      company: 'Visa Inc.',           shares: 0, avgPrice: 0 },
+      { ticker: 'NOVO-B', company: 'Novo Nordisk A/S',   shares: 0, avgPrice: 0 },
+      { ticker: 'JNJ',    company: 'Johnson & Johnson',   shares: 0, avgPrice: 0 },
+      { ticker: 'ASML',   company: 'ASML Holding',        shares: 0, avgPrice: 0 },
     ],
   },
   sc: {
-    total: 18290, perf: 14.8,
     positions: [
-      { ticker: 'META',  company: 'Meta Platforms',  val: 4840, share: 26.5, perf:  55.9 },
-      { ticker: 'AMZN',  company: 'Amazon.com Inc.', val: 3540, share: 19.4, perf:  19.8 },
-      { ticker: 'GOOGL', company: 'Alphabet Inc.',   val: 2890, share: 15.8, perf:  31.2 },
-      { ticker: 'ASML',  company: 'ASML Holding',    val: 2640, share: 14.5, perf:  12.7 },
-      { ticker: 'SAP',   company: 'SAP SE',           val: 2190, share: 12.0, perf:  38.4 },
-      { ticker: 'BNTX',  company: 'BioNTech SE',      val: 1290, share:  7.1, perf: -22.1 },
-      { ticker: 'ALV',   company: 'Allianz SE',        val:  900, share:  4.9, perf:  14.2 },
+      { ticker: 'META',  company: 'Meta Platforms',  shares: 0, avgPrice: 0 },
+      { ticker: 'AMZN',  company: 'Amazon.com Inc.', shares: 0, avgPrice: 0 },
+      { ticker: 'GOOGL', company: 'Alphabet Inc.',   shares: 0, avgPrice: 0 },
+      { ticker: 'ASML',  company: 'ASML Holding',    shares: 0, avgPrice: 0 },
+      { ticker: 'SAP',   company: 'SAP SE',           shares: 0, avgPrice: 0 },
+      { ticker: 'BNTX',  company: 'BioNTech SE',      shares: 0, avgPrice: 0 },
+      { ticker: 'ALV',   company: 'Allianz SE',        shares: 0, avgPrice: 0 },
     ],
   },
 };
 
-// PLATZHALTER eToro — wird in Schritt 2 durch API ersetzt
-const ETORO_PLACEHOLDER = {
-  total: 8190, perf: 11.3,
-  positions: [
-    { ticker: 'BTC',  company: 'Bitcoin',    val: 3980, share: 48.6, perf:  64.1 },
-    { ticker: 'ETH',  company: 'Ethereum',   val: 1110, share: 13.6, perf: -12.4 },
-    { ticker: 'TSLA', company: 'Tesla Inc.', val: 1840, share: 22.5, perf:   8.6 },
-    { ticker: 'COIN', company: 'Coinbase',   val:  820, share: 10.0, perf:  31.2 },
-    { ticker: 'XRP',  company: 'Ripple',     val:  440, share:  5.4, perf:  44.8 },
-  ],
-};
-
-// Aktive Portfoliodaten (aus localStorage oder Standardwerte)
-let portfolioData;
-
-function loadPortfolioData() {
-  const saved = localStorage.getItem('mw-portfolio');
-  portfolioData = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
-}
-
-function savePortfolioData() {
-  localStorage.setItem('mw-portfolio', JSON.stringify(portfolioData));
-}
-
-function formatEuro(val) {
-  return '€ ' + Math.round(val).toLocaleString('de-DE');
-}
-
-// ── BROKER-KACHELN (dynamisch aus portfolioData) ──
-function renderBrokerCards() {
-  const grid = document.getElementById('brokerGrid');
-  if (!grid) return;
-  const brokers = [
-    { id: 'tr', name: 'Trade Republic',  type: 'Manuell',     data: portfolioData.tr         },
-    { id: 'sc', name: 'Scalable Capital', type: 'Manuell',    data: portfolioData.sc         },
-    { id: 'et', name: 'eToro',            type: 'API (folgt)', data: ETORO_PLACEHOLDER },
-  ];
-  grid.innerHTML = brokers.map(b => `
-    <div class="broker-card" data-broker="${b.id}">
-      <div class="broker-name">${b.name}</div>
-      <div class="broker-type">${b.type}</div>
-      <div class="broker-value"><span class="private-val">${formatEuro(b.data.total)}</span></div>
-      <div class="broker-perf ${b.data.perf >= 0 ? 'pos' : 'neg'}">${b.data.perf >= 0 ? '+' : ''}${b.data.perf.toFixed(1)} %</div>
-    </div>`).join('');
-}
-
-// ── HERO-KENNZAHLEN AKTUALISIEREN ──
-function updateHeroStats() {
-  const total = portfolioData.tr.total + portfolioData.sc.total + ETORO_PLACEHOLDER.total;
-  const posCount = portfolioData.tr.positions.length + portfolioData.sc.positions.length + ETORO_PLACEHOLDER.positions.length;
-
-  const elTotal = document.getElementById('heroGesamtwert');
-  if (elTotal) elTotal.textContent = formatEuro(total);
-
-  const elPos = document.getElementById('heroPosCount');
-  if (elPos) elPos.textContent = posCount;
-}
-
-// ── TREEMAP ──
-// PLATZHALTER: Allokationsdaten
+// ── STATISCHE PLATZHALTER (bleiben bis zur späteren Automatisierung) ──
 const ALLOC = [
   { name: 'Aktien', pct: 62, val: '€ 29.958', cls: 'tm-aktien' },
   { name: 'ETFs',   pct: 24, val: '€ 11.597', cls: 'tm-etf'    },
@@ -93,48 +42,6 @@ const ALLOC = [
   { name: 'Cash',   pct:  5, val: '€ 2.416',  cls: 'tm-cash'   },
 ];
 
-function renderTreemap() {
-  const tm = document.getElementById('treemap');
-  if (!tm) return;
-  tm.innerHTML = `
-    <div class="tm-col" style="flex:${ALLOC[0].pct}">
-      <div class="tm-cell ${ALLOC[0].cls}" style="flex:1">
-        <div class="tm-cell-inner">
-          <span class="tm-pct">${ALLOC[0].pct} %</span>
-          <span class="tm-name">${ALLOC[0].name}</span>
-          <span class="tm-val private-val">${ALLOC[0].val}</span>
-        </div>
-      </div>
-    </div>
-    <div class="tm-col" style="flex:${ALLOC[1].pct}">
-      <div class="tm-cell ${ALLOC[1].cls}" style="flex:1">
-        <div class="tm-cell-inner">
-          <span class="tm-pct">${ALLOC[1].pct} %</span>
-          <span class="tm-name">${ALLOC[1].name}</span>
-          <span class="tm-val private-val">${ALLOC[1].val}</span>
-        </div>
-      </div>
-    </div>
-    <div class="tm-col" style="flex:${ALLOC[2].pct + ALLOC[3].pct}">
-      <div class="tm-cell ${ALLOC[2].cls}" style="flex:${ALLOC[2].pct}">
-        <div class="tm-cell-inner">
-          <span class="tm-pct">${ALLOC[2].pct} %</span>
-          <span class="tm-name">${ALLOC[2].name}</span>
-          <span class="tm-val private-val">${ALLOC[2].val}</span>
-        </div>
-      </div>
-      <div class="tm-cell ${ALLOC[3].cls}" style="flex:${ALLOC[3].pct}">
-        <div class="tm-cell-inner">
-          <span class="tm-pct">${ALLOC[3].pct} %</span>
-          <span class="tm-name">${ALLOC[3].name}</span>
-          <span class="tm-val private-val">${ALLOC[3].val}</span>
-        </div>
-      </div>
-    </div>`;
-}
-
-// ── MONATS-HEATMAP ──
-// PLATZHALTER: Performance-Daten 2025
 const MONTHS_PERF = [
   { m: 'Jan', p: +2.1 }, { m: 'Feb', p: +4.8 }, { m: 'Mär', p: -1.3 },
   { m: 'Apr', p: +3.2 }, { m: 'Mai', p: +6.1 }, { m: 'Jun', p: -0.8 },
@@ -142,53 +49,6 @@ const MONTHS_PERF = [
   { m: 'Okt', p: +3.7 }, { m: 'Nov', p: +2.2 }, { m: 'Dez', p: +4.1 },
 ];
 
-function renderMonthHeatmap() {
-  const el = document.getElementById('monthHeatmap');
-  if (!el) return;
-  const maxAbs = Math.max(...MONTHS_PERF.map(m => Math.abs(m.p)));
-  el.innerHTML = MONTHS_PERF.map(m => {
-    const cls       = m.p > 0.3 ? 'pos' : m.p < -0.3 ? 'neg' : 'flat';
-    const intensity = Math.abs(m.p) / maxAbs;
-    let bg = 'transparent';
-    if (m.p >  0.3) bg = `rgba(29,158,117,${(0.08 + intensity * 0.22).toFixed(2)})`;
-    if (m.p < -0.3) bg = `rgba(192,82,74,${(0.08 + intensity * 0.22).toFixed(2)})`;
-    const barColor = m.p > 0 ? 'var(--teal)' : '#c0524a';
-    const barW     = (Math.abs(m.p) / maxAbs * 100).toFixed(1);
-    return `<div class="month-cell" style="background:${bg}">
-      <span class="month-name">${m.m}</span>
-      <span class="month-perf ${cls}">${m.p > 0 ? '+' : ''}${m.p.toFixed(1)} %</span>
-      <div class="month-bar" style="background:${barColor};width:${barW}%;opacity:0.5"></div>
-    </div>`;
-  }).join('');
-}
-
-// ── TOP 10 POSITIONEN (alle Broker zusammengeführt, nach Wert sortiert) ──
-function renderPositions() {
-  const el = document.getElementById('posRows');
-  if (!el) return;
-
-  const all = [
-    ...portfolioData.tr.positions.map(p => ({ ...p, broker: 'TR' })),
-    ...portfolioData.sc.positions.map(p => ({ ...p, broker: 'SC' })),
-    ...ETORO_PLACEHOLDER.positions.map(p => ({ ...p, broker: 'eT' })),
-  ].sort((a, b) => b.val - a.val).slice(0, 10);
-
-  el.innerHTML = all.map((p, i) => `
-    <div class="pos-row">
-      <span class="pos-rank">${i + 1}</span>
-      <div class="pos-name-wrap">
-        <div class="pos-ticker">${p.ticker}</div>
-        <div class="pos-company">${p.company}</div>
-      </div>
-      <div><span class="pos-broker-tag">${p.broker}</span></div>
-      <div class="pos-value"><span class="private-val">${formatEuro(p.val)}</span></div>
-      <div class="pos-share-val">${p.share.toFixed(1)} %</div>
-      <div class="pos-perf-val ${p.perf >= 0 ? 'pos' : 'neg'}">${p.perf >= 0 ? '+' : ''}${p.perf.toFixed(1)} %</div>
-    </div>`).join('');
-}
-
-// ── DIVIDENDEN ──
-// PLATZHALTER: Dividendendaten
 const DIV_SUMMARY = { total: '€ 824', count: 18, avgYield: '2.3 %' };
 const DIVIDENDEN = [
   { date: '12.06.25', ticker: 'MSFT',   company: 'Microsoft Corp.',   amount: '€ 48,20',  yield: '0.8 %' },
@@ -200,49 +60,6 @@ const DIVIDENDEN = [
   { date: '03.04.25', ticker: 'MSFT',   company: 'Microsoft Corp.',    amount: '€ 48,20',  yield: '0.8 %' },
 ];
 
-function renderDividenden() {
-  const summaryEl = document.getElementById('divSummary');
-  if (summaryEl) {
-    summaryEl.innerHTML = `
-      <div class="div-card">
-        <div class="div-card-label">Erhalten YTD</div>
-        <div class="div-card-val"><span class="private-val">${DIV_SUMMARY.total}</span></div>
-        <div class="div-card-sub">2025</div>
-      </div>
-      <div class="div-card">
-        <div class="div-card-label">Zahlungen</div>
-        <div class="div-card-val">${DIV_SUMMARY.count}</div>
-        <div class="div-card-sub">Transaktionen</div>
-      </div>
-      <div class="div-card">
-        <div class="div-card-label">Ø Dividendenrendite</div>
-        <div class="div-card-val">${DIV_SUMMARY.avgYield}</div>
-        <div class="div-card-sub">Portfolio</div>
-      </div>`;
-  }
-
-  const listEl = document.getElementById('divList');
-  if (listEl) {
-    listEl.innerHTML = `
-      <div class="div-list-header">
-        <span>Datum</span><span>Position</span>
-        <span style="text-align:right">Betrag</span>
-        <span style="text-align:right">Rendite</span>
-      </div>` +
-      DIVIDENDEN.map(d => `
-      <div class="div-row">
-        <span class="div-date">${d.date}</span>
-        <div>
-          <div class="div-ticker">${d.ticker}</div>
-          <div class="div-company">${d.company}</div>
-        </div>
-        <div class="div-amount"><span class="private-val">${d.amount}</span></div>
-        <div class="div-yield">${d.yield}</div>
-      </div>`).join('');
-  }
-}
-
-// ── BROKER-DETAILDATEN (Chart, Sektoren — Platzhalter) ──
 const BROKER_DETAIL = {
   tr: {
     chart: [100, 104, 102, 109, 107, 114, 111, 118, 116, 122, 119, 128, 131],
@@ -269,32 +86,356 @@ const BROKER_DETAIL = {
   },
 };
 
-// ── BROKER MODAL ──
+// ── STATE ──
+let portfolioData = {};
+let livePrices    = {};  // { 'NVDA': { c: 142.5, pc: 140.0 }, ... }
+let cryptoPrices  = {};  // { 'bitcoin': { eur: 58000, eur_24h_change: 2.1 }, ... }
+let eurUsd        = null;
+let etoroData     = { positions: [] };
+let priceStatus   = 'idle'; // 'idle' | 'loading' | 'ok' | 'error'
+
+// ── DATEN LADEN / SPEICHERN ──
+function loadPortfolioData() {
+  const saved = localStorage.getItem('mw-portfolio');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      // Migration: altes Format mit val/share/perf → neues Format mit shares/avgPrice
+      if (parsed.tr?.positions?.[0]?.val !== undefined) {
+        portfolioData = {
+          tr: { positions: (parsed.tr?.positions ?? []).map(p => ({ ticker: p.ticker, company: p.company, shares: 0, avgPrice: 0 })) },
+          sc: { positions: (parsed.sc?.positions ?? []).map(p => ({ ticker: p.ticker, company: p.company, shares: 0, avgPrice: 0 })) },
+        };
+      } else {
+        portfolioData = parsed;
+      }
+      return;
+    } catch(e) {}
+  }
+  portfolioData = JSON.parse(JSON.stringify(DEFAULT_PORTFOLIO));
+}
+
+function savePortfolioData() {
+  localStorage.setItem('mw-portfolio', JSON.stringify(portfolioData));
+}
+
+function formatEuro(val) {
+  return '€ ' + Math.round(val).toLocaleString('de-DE');
+}
+
+// ── LIVE-PREIS BERECHNUNG ──
+function isEurTicker(ticker) {
+  return /\.(DE|AS|PA|MC|CO|ST|MI|VX|L|BR|LSE)$/i.test(ticker);
+}
+
+function calcVal(pos) {
+  if (!pos.shares) return null;
+  if (CRYPTO_IDS[pos.ticker]) {
+    const price = cryptoPrices[CRYPTO_IDS[pos.ticker]]?.eur;
+    return price != null ? pos.shares * price : null;
+  }
+  const raw = livePrices[pos.ticker]?.c;
+  if (!raw) return null;
+  if (isEurTicker(pos.ticker)) return pos.shares * raw;
+  return eurUsd != null ? pos.shares * raw * eurUsd : null;
+}
+
+function calcPerf(pos) {
+  const val = calcVal(pos);
+  if (val === null || !pos.avgPrice) return null;
+  const cost = pos.shares * pos.avgPrice;
+  return cost > 0 ? (val - cost) / cost * 100 : null;
+}
+
+function calcGrandTotal() {
+  return [
+    ...(portfolioData.tr?.positions ?? []),
+    ...(portfolioData.sc?.positions ?? []),
+    ...(etoroData.positions ?? []),
+  ].reduce((s, p) => s + (calcVal(p) ?? 0), 0);
+}
+
+function calcBrokerStats(brokerId) {
+  const positions = brokerId === 'et'
+    ? (etoroData.positions ?? [])
+    : (portfolioData[brokerId]?.positions ?? []);
+  const total    = positions.reduce((s, p) => s + (calcVal(p) ?? 0), 0);
+  const cost     = positions.reduce((s, p) => s + p.shares * p.avgPrice, 0);
+  const perf     = cost > 0 ? (total - cost) / cost * 100 : 0;
+  return { total, perf };
+}
+
+// ── KURS-FETCH ──
+async function fetchEtoroPositions() {
+  if (!WORKER_URL) return;
+  try {
+    const r = await fetch(`${WORKER_URL}/etoro`);
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.error) return;
+
+    // Worker liefert bereits angereicherte Positionen mit ticker, company, shares, avgPrice (EUR)
+    etoroData.positions = (data.positions ?? []).filter(p => p.ticker && p.shares > 0);
+
+    // EUR/USD vom eToro-Endpunkt übernehmen falls noch nicht gesetzt
+    if (data.eurUsd && !eurUsd) eurUsd = data.eurUsd;
+  } catch(e) {
+    console.warn('eToro:', e.message);
+  }
+}
+
+async function fetchPrices() {
+  if (!WORKER_URL) { renderAll(); return; }
+
+  priceStatus = 'loading';
+  updatePriceStatus();
+
+  const stockTickers = [
+    ...(portfolioData.tr?.positions ?? []),
+    ...(portfolioData.sc?.positions ?? []),
+    ...(etoroData.positions ?? []).filter(p => !CRYPTO_IDS[p.ticker]),
+  ].map(p => p.ticker).filter((v, i, a) => v && a.indexOf(v) === i);
+
+  const cryptoIds = Object.values(CRYPTO_IDS).join(',');
+
+  try {
+    await Promise.all([
+      stockTickers.length
+        ? fetch(`${WORKER_URL}/prices?tickers=${stockTickers.join(',')}`)
+            .then(r => r.json())
+            .then(d => { livePrices = d.prices ?? {}; if (d.eurUsd) eurUsd = d.eurUsd; })
+        : Promise.resolve(),
+      fetch(`${WORKER_URL}/crypto?ids=${cryptoIds}`)
+        .then(r => r.json())
+        .then(d => { cryptoPrices = d; }),
+    ]);
+    priceStatus = 'ok';
+  } catch(e) {
+    priceStatus = 'error';
+  }
+
+  updatePriceStatus();
+  renderAll();
+}
+
+function updatePriceStatus() {
+  const el = document.getElementById('priceStatus');
+  if (!el) return;
+  if (priceStatus === 'ok') {
+    const t = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    el.textContent = `Kurs ${t}`;
+    el.style.color = 'var(--teal)';
+  } else if (priceStatus === 'loading') {
+    el.textContent = 'Aktualisiere…';
+    el.style.color = 'var(--text-muted)';
+  } else if (priceStatus === 'error') {
+    el.textContent = 'Offline';
+    el.style.color = '#c0524a';
+  } else {
+    el.textContent = WORKER_URL ? '' : 'Worker nicht konfiguriert';
+    el.style.color = 'var(--text-muted)';
+  }
+}
+
+// ── RENDER-FUNKTIONEN ──
+function renderAll() {
+  renderBrokerCards();
+  renderPositions();
+  updateHeroStats();
+}
+
+function renderBrokerCards() {
+  const grid = document.getElementById('brokerGrid');
+  if (!grid) return;
+
+  const brokers = [
+    { id: 'tr', name: 'Trade Republic',  type: 'Finnhub Live' },
+    { id: 'sc', name: 'Scalable Capital', type: 'Finnhub Live' },
+    { id: 'et', name: 'eToro',            type: etoroData.positions.length ? 'eToro API · Live' : 'API (lädt…)' },
+  ];
+
+  grid.innerHTML = brokers.map(b => {
+    const { total, perf } = calcBrokerStats(b.id);
+    const hasData = total > 0;
+    return `
+      <div class="broker-card" data-broker="${b.id}">
+        <div class="broker-name">${b.name}</div>
+        <div class="broker-type">${b.type}</div>
+        <div class="broker-value"><span class="private-val">${hasData ? formatEuro(total) : '— —'}</span></div>
+        <div class="broker-perf ${perf >= 0 ? 'pos' : 'neg'}">${hasData ? (perf >= 0 ? '+' : '') + perf.toFixed(1) + ' %' : '—'}</div>
+      </div>`;
+  }).join('');
+}
+
+function updateHeroStats() {
+  const total    = calcGrandTotal();
+  const allPos   = [
+    ...(portfolioData.tr?.positions ?? []),
+    ...(portfolioData.sc?.positions ?? []),
+    ...(etoroData.positions ?? []),
+  ];
+  const posCount = allPos.length;
+
+  const elTotal = document.getElementById('heroGesamtwert');
+  if (elTotal) elTotal.textContent = total > 0 ? formatEuro(total) : '€ —';
+
+  const elPos = document.getElementById('heroPosCount');
+  if (elPos) elPos.textContent = posCount;
+}
+
+function renderPositions() {
+  const el = document.getElementById('posRows');
+  if (!el) return;
+
+  const grandTotal = calcGrandTotal();
+  const all = [
+    ...(portfolioData.tr?.positions ?? []).map(p => ({ ...p, broker: 'TR' })),
+    ...(portfolioData.sc?.positions ?? []).map(p => ({ ...p, broker: 'SC' })),
+    ...(etoroData.positions ?? []).map(p => ({ ...p, broker: 'eT' })),
+  ]
+    .map(p => ({ ...p, _val: calcVal(p) ?? 0, _perf: calcPerf(p) ?? null }))
+    .sort((a, b) => b._val - a._val)
+    .slice(0, 10);
+
+  el.innerHTML = all.map((p, i) => {
+    const share = grandTotal > 0 && p._val ? (p._val / grandTotal * 100).toFixed(1) : '—';
+    return `
+      <div class="pos-row">
+        <span class="pos-rank">${i + 1}</span>
+        <div class="pos-name-wrap">
+          <div class="pos-ticker">${p.ticker}</div>
+          <div class="pos-company">${p.company}</div>
+        </div>
+        <div><span class="pos-broker-tag">${p.broker}</span></div>
+        <div class="pos-value"><span class="private-val">${p._val ? formatEuro(p._val) : '—'}</span></div>
+        <div class="pos-share-val">${share !== '—' ? share + ' %' : '—'}</div>
+        <div class="pos-perf-val ${(p._perf ?? 0) >= 0 ? 'pos' : 'neg'}">
+          ${p._perf != null ? (p._perf >= 0 ? '+' : '') + p._perf.toFixed(1) + ' %' : '—'}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderTreemap() {
+  const tm = document.getElementById('treemap');
+  if (!tm) return;
+  tm.innerHTML = `
+    <div class="tm-col" style="flex:${ALLOC[0].pct}">
+      <div class="tm-cell ${ALLOC[0].cls}" style="flex:1"><div class="tm-cell-inner">
+        <span class="tm-pct">${ALLOC[0].pct} %</span>
+        <span class="tm-name">${ALLOC[0].name}</span>
+        <span class="tm-val private-val">${ALLOC[0].val}</span>
+      </div></div>
+    </div>
+    <div class="tm-col" style="flex:${ALLOC[1].pct}">
+      <div class="tm-cell ${ALLOC[1].cls}" style="flex:1"><div class="tm-cell-inner">
+        <span class="tm-pct">${ALLOC[1].pct} %</span>
+        <span class="tm-name">${ALLOC[1].name}</span>
+        <span class="tm-val private-val">${ALLOC[1].val}</span>
+      </div></div>
+    </div>
+    <div class="tm-col" style="flex:${ALLOC[2].pct + ALLOC[3].pct}">
+      <div class="tm-cell ${ALLOC[2].cls}" style="flex:${ALLOC[2].pct}"><div class="tm-cell-inner">
+        <span class="tm-pct">${ALLOC[2].pct} %</span>
+        <span class="tm-name">${ALLOC[2].name}</span>
+        <span class="tm-val private-val">${ALLOC[2].val}</span>
+      </div></div>
+      <div class="tm-cell ${ALLOC[3].cls}" style="flex:${ALLOC[3].pct}"><div class="tm-cell-inner">
+        <span class="tm-pct">${ALLOC[3].pct} %</span>
+        <span class="tm-name">${ALLOC[3].name}</span>
+        <span class="tm-val private-val">${ALLOC[3].val}</span>
+      </div></div>
+    </div>`;
+}
+
+function renderMonthHeatmap() {
+  const el = document.getElementById('monthHeatmap');
+  if (!el) return;
+  const maxAbs = Math.max(...MONTHS_PERF.map(m => Math.abs(m.p)));
+  el.innerHTML = MONTHS_PERF.map(m => {
+    const cls       = m.p > 0.3 ? 'pos' : m.p < -0.3 ? 'neg' : 'flat';
+    const intensity = Math.abs(m.p) / maxAbs;
+    let bg = 'transparent';
+    if (m.p >  0.3) bg = `rgba(29,158,117,${(0.08 + intensity * 0.22).toFixed(2)})`;
+    if (m.p < -0.3) bg = `rgba(192,82,74,${(0.08 + intensity * 0.22).toFixed(2)})`;
+    const barColor = m.p > 0 ? 'var(--teal)' : '#c0524a';
+    const barW     = (Math.abs(m.p) / maxAbs * 100).toFixed(1);
+    return `<div class="month-cell" style="background:${bg}">
+      <span class="month-name">${m.m}</span>
+      <span class="month-perf ${cls}">${m.p > 0 ? '+' : ''}${m.p.toFixed(1)} %</span>
+      <div class="month-bar" style="background:${barColor};width:${barW}%;opacity:0.5"></div>
+    </div>`;
+  }).join('');
+}
+
+function renderDividenden() {
+  const summaryEl = document.getElementById('divSummary');
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+      <div class="div-card">
+        <div class="div-card-label">Erhalten YTD</div>
+        <div class="div-card-val"><span class="private-val">${DIV_SUMMARY.total}</span></div>
+        <div class="div-card-sub">2025</div>
+      </div>
+      <div class="div-card">
+        <div class="div-card-label">Zahlungen</div>
+        <div class="div-card-val">${DIV_SUMMARY.count}</div>
+        <div class="div-card-sub">Transaktionen</div>
+      </div>
+      <div class="div-card">
+        <div class="div-card-label">Ø Dividendenrendite</div>
+        <div class="div-card-val">${DIV_SUMMARY.avgYield}</div>
+        <div class="div-card-sub">Portfolio</div>
+      </div>`;
+  }
+  const listEl = document.getElementById('divList');
+  if (listEl) {
+    listEl.innerHTML = `
+      <div class="div-list-header">
+        <span>Datum</span><span>Position</span>
+        <span style="text-align:right">Betrag</span>
+        <span style="text-align:right">Rendite</span>
+      </div>` +
+      DIVIDENDEN.map(d => `
+      <div class="div-row">
+        <span class="div-date">${d.date}</span>
+        <div><div class="div-ticker">${d.ticker}</div><div class="div-company">${d.company}</div></div>
+        <div class="div-amount"><span class="private-val">${d.amount}</span></div>
+        <div class="div-yield">${d.yield}</div>
+      </div>`).join('');
+  }
+}
+
+// ── BROKER DETAIL MODAL ──
 function openModal(brokerId) {
-  const detail  = BROKER_DETAIL[brokerId];
+  const detail = BROKER_DETAIL[brokerId];
   if (!detail) return;
 
-  // Daten je nach Broker aus portfolioData oder Platzhalter
-  const isEtoro = brokerId === 'et';
-  const data    = isEtoro ? ETORO_PLACEHOLDER : portfolioData[brokerId];
+  const positions   = brokerId === 'et' ? etoroData.positions : (portfolioData[brokerId]?.positions ?? []);
+  const { total, perf } = calcBrokerStats(brokerId);
+  const hasData     = total > 0;
+
   const brokerNames = { tr: 'Trade Republic', sc: 'Scalable Capital', et: 'eToro' };
-  const brokerSubs  = { tr: 'Manuell · Detailansicht', sc: 'Manuell · Detailansicht', et: 'API (folgt) · Detailansicht' };
+  const brokerSubs  = {
+    tr: 'Finnhub Live · Detailansicht',
+    sc: 'Finnhub Live · Detailansicht',
+    et: etoroData.positions.length ? 'eToro API · Detailansicht' : 'API (lädt…) · Detailansicht',
+  };
 
   document.getElementById('bmTitle').textContent    = brokerNames[brokerId];
   document.getElementById('bmSubtitle').textContent = brokerSubs[brokerId];
 
-  // KPIs
   const sharpe   = { tr: '1.42', sc: '1.18', et: '0.87' }[brokerId];
   const drawdown = { tr: '-14,3 %', sc: '-11,7 %', et: '-28,4 %' }[brokerId];
   document.getElementById('bmKpis').innerHTML = `
     <div class="bm-kpi">
       <div class="bm-kpi-label">Gesamtwert</div>
-      <div class="bm-kpi-val"><span class="private-val">${formatEuro(data.total)}</span></div>
+      <div class="bm-kpi-val"><span class="private-val">${hasData ? formatEuro(total) : '—'}</span></div>
       <div class="bm-kpi-sub">Aktuell</div>
     </div>
     <div class="bm-kpi">
       <div class="bm-kpi-label">Performance</div>
-      <div class="bm-kpi-val pos">${data.perf >= 0 ? '+' : ''}${data.perf.toFixed(1)} %</div>
+      <div class="bm-kpi-val ${perf >= 0 ? 'pos' : 'neg'}">${hasData ? (perf >= 0 ? '+' : '') + perf.toFixed(1) + ' %' : '—'}</div>
       <div class="bm-kpi-sub">Gesamt</div>
     </div>
     <div class="bm-kpi">
@@ -308,49 +449,46 @@ function openModal(brokerId) {
       <div class="bm-kpi-sub">12 Monate</div>
     </div>`;
 
-  // Chart
   renderModalChart(detail.chart);
 
-  // Beste / Schlechteste Position (auto-berechnet aus Positionen)
-  const positions = data.positions;
-  const best  = positions.reduce((a, b) => b.perf > a.perf ? b : a, positions[0]);
-  const worst = positions.reduce((a, b) => b.perf < a.perf ? b : a, positions[0]);
-  document.getElementById('bmHighlights').innerHTML = `
+  const withPerf = positions.map(p => ({ ...p, _perf: calcPerf(p) ?? 0 }));
+  const best  = withPerf.length ? withPerf.reduce((a, b) => b._perf > a._perf ? b : a) : null;
+  const worst = withPerf.length ? withPerf.reduce((a, b) => b._perf < a._perf ? b : a) : null;
+
+  document.getElementById('bmHighlights').innerHTML = best ? `
     <div class="bm-highlight">
       <div class="bm-hl-tag best">▲ Beste Position</div>
       <div class="bm-hl-ticker">${best.ticker}</div>
       <div class="bm-hl-company">${best.company}</div>
-      <div class="bm-hl-perf pos">${best.perf >= 0 ? '+' : ''}${best.perf.toFixed(1)} %</div>
+      <div class="bm-hl-perf pos">${best._perf >= 0 ? '+' : ''}${best._perf.toFixed(1)} %</div>
     </div>
     <div class="bm-highlight">
       <div class="bm-hl-tag worst">▼ Schlechteste Position</div>
       <div class="bm-hl-ticker">${worst.ticker}</div>
       <div class="bm-hl-company">${worst.company}</div>
-      <div class="bm-hl-perf neg">${worst.perf.toFixed(1)} %</div>
-    </div>`;
+      <div class="bm-hl-perf neg">${worst._perf.toFixed(1)} %</div>
+    </div>` : '<div style="color:var(--text-muted);font-size:12px">Keine Positionen</div>';
 
-  // Sektoren
   const maxS = Math.max(...detail.sectors.map(s => s.pct));
   document.getElementById('bmSectors').innerHTML = detail.sectors.map(s => `
     <div class="bm-sector-row">
       <span class="bm-sector-name">${s.name}</span>
-      <div class="bm-sector-track">
-        <div class="bm-sector-bar" style="width:${(s.pct / maxS * 100).toFixed(1)}%"></div>
-      </div>
+      <div class="bm-sector-track"><div class="bm-sector-bar" style="width:${(s.pct/maxS*100).toFixed(1)}%"></div></div>
       <span class="bm-sector-pct">${s.pct} %</span>
     </div>`).join('');
 
-  // Positionen
-  document.getElementById('bmPositions').innerHTML = positions.map(p => `
-    <div class="bm-pos-row">
-      <div>
-        <div class="bm-pos-ticker">${p.ticker}</div>
-        <div class="bm-pos-company">${p.company}</div>
-      </div>
-      <div class="bm-pos-val"><span class="private-val">${formatEuro(p.val)}</span></div>
-      <div class="bm-pos-share">${p.share.toFixed(1)} %</div>
-      <div class="bm-pos-perf ${p.perf >= 0 ? 'pos' : 'neg'}">${p.perf >= 0 ? '+' : ''}${p.perf.toFixed(1)} %</div>
-    </div>`).join('');
+  document.getElementById('bmPositions').innerHTML = positions.map(p => {
+    const val  = calcVal(p);
+    const perf = calcPerf(p);
+    const share = val && total > 0 ? (val / total * 100).toFixed(1) : '—';
+    return `
+      <div class="bm-pos-row">
+        <div><div class="bm-pos-ticker">${p.ticker}</div><div class="bm-pos-company">${p.company}</div></div>
+        <div class="bm-pos-val"><span class="private-val">${val ? formatEuro(val) : '—'}</span></div>
+        <div class="bm-pos-share">${share !== '—' ? share + ' %' : '—'}</div>
+        <div class="bm-pos-perf ${(perf ?? 0) >= 0 ? 'pos' : 'neg'}">${perf != null ? (perf >= 0 ? '+' : '') + perf.toFixed(1) + ' %' : '—'}</div>
+      </div>`;
+  }).join('');
 
   document.getElementById('brokerModal').classList.add('visible');
   document.body.style.overflow = 'hidden';
@@ -365,8 +503,7 @@ function renderModalChart(points) {
   const svg = document.getElementById('bmChart');
   if (!svg) return;
   const w = 840, h = 160, pad = 12;
-  const min   = Math.min(...points);
-  const max   = Math.max(...points);
+  const min   = Math.min(...points), max = Math.max(...points);
   const range = max - min || 1;
   const xs = points.map((_, i) => pad + (i / (points.length - 1)) * (w - pad * 2));
   const ys = points.map(p => h - pad - ((p - min) / range) * (h - pad * 2));
@@ -385,16 +522,15 @@ function renderModalChart(points) {
 }
 
 // ── PIN MODAL ──
-let pinBuffer      = '';
-let unlocked       = sessionStorage.getItem('mw-unlocked') === '1';
-let pendingAction  = null; // Aktion nach erfolgreichem PIN-Enter
+let pinBuffer     = '';
+let unlocked      = sessionStorage.getItem('mw-unlocked') === '1';
+let pendingAction = null;
 
 function applyUnlockState() {
   const btn   = document.getElementById('privacyBtn');
   const label = document.getElementById('privacyLabel');
   const icon  = document.getElementById('privacyIcon');
   if (!btn || !label || !icon) return;
-
   if (unlocked) {
     document.body.classList.add('values-visible');
     btn.classList.add('unlocked');
@@ -457,15 +593,13 @@ function updateDots() {
 
 function checkPin() {
   if (pinBuffer === PIN) {
-    const action = pendingAction; // vor closePin() sichern — closePin setzt pendingAction auf null
+    const action = pendingAction;
     closePin();
     if (action === 'values') {
-      // "Werte anzeigen" → Session-basiert, bleibt bis Browser geschlossen
       unlocked = true;
       sessionStorage.setItem('mw-unlocked', '1');
       applyUnlockState();
     } else if (action === 'manage') {
-      // "Portfolio bearbeiten" → kein Session-Unlock, öffnet direkt das Modal
       openManage();
     }
   } else {
@@ -476,17 +610,13 @@ function checkPin() {
       dot.classList.add('error');
     }
     document.getElementById('pinError').textContent = 'Falscher PIN';
-    setTimeout(() => {
-      pinBuffer = '';
-      updateDots();
-      document.getElementById('pinError').textContent = '';
-    }, 1000);
+    setTimeout(() => { pinBuffer = ''; updateDots(); document.getElementById('pinError').textContent = ''; }, 1000);
   }
 }
 
 // ── PORTFOLIO BEARBEITEN MODAL ──
 let activeManageBroker = 'tr';
-let pendingEdits = {}; // Zwischenspeicher beim Tab-Wechsel
+let pendingEdits = {};
 
 function openManage() {
   pendingEdits = {};
@@ -503,37 +633,22 @@ function closeManage() {
 }
 
 function renderManageContent() {
-  // Tabs aktualisieren
   document.querySelectorAll('.manage-tab').forEach(tab => {
     tab.classList.toggle('active', tab.dataset.broker === activeManageBroker);
   });
 
-  // Daten: zuerst zwischengespeicherte Edits, dann gespeicherte Daten
   const data = pendingEdits[activeManageBroker]
-    ?? JSON.parse(JSON.stringify(portfolioData[activeManageBroker]));
+    ?? JSON.parse(JSON.stringify(portfolioData[activeManageBroker] ?? { positions: [] }));
 
   const body = document.getElementById('manageBody');
   if (!body) return;
 
   body.innerHTML = `
-    <div class="section-label" style="margin-bottom:16px">Übersicht</div>
-    <div class="manage-overview">
-      <div class="manage-field">
-        <label class="manage-label">Gesamtwert (€)</label>
-        <input class="manage-input" id="mTotalVal" type="number" step="1" value="${data.total}">
-      </div>
-      <div class="manage-field">
-        <label class="manage-label">Performance (%)</label>
-        <input class="manage-input" id="mPerf" type="number" step="0.1" value="${data.perf}">
-      </div>
-    </div>
-    <div class="section-label" style="margin-bottom:12px">Positionen</div>
     <div class="manage-pos-header">
-      <span>Ticker</span>
+      <span>Ticker / ISIN</span>
       <span>Bezeichnung</span>
-      <span>Wert (€)</span>
-      <span>Anteil %</span>
-      <span>Perf. %</span>
+      <span>Stück</span>
+      <span>Ø Kurs €</span>
       <span></span>
     </div>
     <div id="managePosList">
@@ -541,81 +656,93 @@ function renderManageContent() {
     </div>
     <button class="manage-add-btn" id="manageAddPos">+ Position hinzufügen</button>`;
 
-  // Delete-Listener
-  body.querySelectorAll('.manage-pos-delete').forEach(btn => {
-    btn.addEventListener('click', () => btn.closest('.manage-pos-row').remove());
-  });
-
-  // Hinzufügen-Listener
-  document.getElementById('manageAddPos').addEventListener('click', () => {
-    const list = document.getElementById('managePosList');
-    const div  = document.createElement('div');
-    div.innerHTML = renderManagePosRow({ ticker: '', company: '', val: 0, share: 0, perf: 0 });
-    const row = div.firstElementChild;
-    list.appendChild(row);
-    row.querySelector('.manage-pos-delete').addEventListener('click', () => row.remove());
-    row.querySelector('.mp-ticker').focus();
-  });
+  attachManageListeners(body);
 }
 
 function renderManagePosRow(p) {
   return `<div class="manage-pos-row">
-    <input class="manage-pos-input mp-ticker"  placeholder="MSFT" value="${p.ticker}" maxlength="10">
-    <input class="manage-pos-input mp-company" placeholder="Microsoft Corp." value="${p.company}">
-    <input class="manage-pos-input mp-val"  type="number" step="1"   placeholder="0"   value="${p.val}">
-    <input class="manage-pos-input mp-share" type="number" step="0.1" placeholder="0.0" value="${p.share}">
-    <input class="manage-pos-input mp-perf"  type="number" step="0.1" placeholder="0.0" value="${p.perf}">
+    <div class="mp-ticker-wrap">
+      <input class="manage-pos-input mp-ticker" placeholder="MSFT" value="${p.ticker}" maxlength="20">
+      <button class="mp-lookup" title="Ticker/ISIN suchen">↗</button>
+    </div>
+    <input class="manage-pos-input mp-company" placeholder="Name" value="${p.company ?? ''}">
+    <input class="manage-pos-input mp-shares"   type="number" step="0.0001" placeholder="0"    value="${p.shares   || ''}">
+    <input class="manage-pos-input mp-avgprice" type="number" step="0.01"   placeholder="0.00" value="${p.avgPrice || ''}">
     <button class="manage-pos-delete" title="Löschen">✕</button>
   </div>`;
 }
 
-// Aktuellen Tab-Inhalt in pendingEdits sichern
-function collectCurrentTab() {
-  const totalEl = document.getElementById('mTotalVal');
-  if (!totalEl) return; // Tab noch nicht gerendert
+function attachManageListeners(body) {
+  body.querySelectorAll('.manage-pos-delete').forEach(btn =>
+    btn.addEventListener('click', () => btn.closest('.manage-pos-row').remove())
+  );
+  body.querySelectorAll('.mp-lookup').forEach(btn =>
+    btn.addEventListener('click', () => lookupTicker(btn.closest('.manage-pos-row')))
+  );
+  document.getElementById('manageAddPos')?.addEventListener('click', () => {
+    const list = document.getElementById('managePosList');
+    const div  = document.createElement('div');
+    div.innerHTML = renderManagePosRow({ ticker: '', company: '', shares: 0, avgPrice: 0 });
+    const row = div.firstElementChild;
+    list.appendChild(row);
+    row.querySelector('.manage-pos-delete').addEventListener('click', () => row.remove());
+    row.querySelector('.mp-lookup').addEventListener('click', () => lookupTicker(row));
+    row.querySelector('.mp-ticker').focus();
+  });
+}
 
+function collectCurrentTab() {
   const positions = [];
   document.querySelectorAll('.manage-pos-row').forEach(row => {
-    const ticker  = row.querySelector('.mp-ticker').value.trim().toUpperCase();
-    const company = row.querySelector('.mp-company').value.trim();
-    const val     = parseFloat(row.querySelector('.mp-val').value)   || 0;
-    const share   = parseFloat(row.querySelector('.mp-share').value) || 0;
-    const perf    = parseFloat(row.querySelector('.mp-perf').value)  || 0;
-    if (ticker) positions.push({ ticker, company, val, share, perf });
+    const ticker   = row.querySelector('.mp-ticker')?.value.trim().toUpperCase() ?? '';
+    const company  = row.querySelector('.mp-company')?.value.trim() ?? '';
+    const shares   = parseFloat(row.querySelector('.mp-shares')?.value)   || 0;
+    const avgPrice = parseFloat(row.querySelector('.mp-avgprice')?.value) || 0;
+    if (ticker) positions.push({ ticker, company, shares, avgPrice });
   });
-
-  pendingEdits[activeManageBroker] = {
-    total: parseFloat(totalEl.value) || 0,
-    perf:  parseFloat(document.getElementById('mPerf').value) || 0,
-    positions,
-  };
+  pendingEdits[activeManageBroker] = { positions };
 }
 
 function saveManage() {
   collectCurrentTab();
-
-  // Alle pendingEdits in portfolioData übernehmen
-  Object.keys(pendingEdits).forEach(broker => {
-    portfolioData[broker] = pendingEdits[broker];
-  });
+  Object.keys(pendingEdits).forEach(b => { portfolioData[b] = pendingEdits[b]; });
   pendingEdits = {};
-
   savePortfolioData();
-
-  // Seite neu rendern
-  renderBrokerCards();
-  renderPositions();
-  updateHeroStats();
-
+  fetchPrices(); // Neue Ticker sofort abfragen
   closeManage();
-  // Nach dem Speichern wieder sperren — nächste Bearbeitung erfordert erneut PIN
+}
+
+// ISIN / WKN → Ticker-Suche via Worker
+async function lookupTicker(row) {
+  if (!WORKER_URL) return;
+  const tickerInput  = row.querySelector('.mp-ticker');
+  const companyInput = row.querySelector('.mp-company');
+  const btn          = row.querySelector('.mp-lookup');
+  const q = tickerInput.value.trim();
+  if (!q) return;
+
+  btn.textContent = '…';
+  btn.disabled    = true;
+  try {
+    const r       = await fetch(`${WORKER_URL}/lookup?q=${encodeURIComponent(q)}`);
+    const results = await r.json();
+    if (results.length > 0) {
+      const best = results[0];
+      tickerInput.value  = best.symbol ?? best.displaySymbol ?? q;
+      companyInput.value = best.description ?? best.name ?? companyInput.value;
+    }
+  } catch(e) {
+    console.warn('Lookup failed:', e.message);
+  } finally {
+    btn.textContent = '↗';
+    btn.disabled    = false;
+  }
 }
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
   loadPortfolioData();
 
-  // Inhalte rendern
   renderBrokerCards();
   renderTreemap();
   renderMonthHeatmap();
@@ -623,42 +750,45 @@ document.addEventListener('DOMContentLoaded', () => {
   renderDividenden();
   updateHeroStats();
   applyUnlockState();
+  updatePriceStatus();
 
-  // ── BROKER-KACHELN ──
-  const brokerGrid = document.getElementById('brokerGrid');
-  if (brokerGrid) {
-    brokerGrid.addEventListener('click', e => {
-      const card = e.target.closest('[data-broker]');
-      if (card) openModal(card.dataset.broker);
-    });
-  }
+  // eToro laden, dann Kurse starten
+  fetchEtoroPositions().then(() => {
+    fetchPrices();
+    setInterval(fetchPrices, 30_000);
+  });
 
-  // ── PRIVACY BUTTON ──
+  // Broker-Kacheln
+  document.getElementById('brokerGrid')?.addEventListener('click', e => {
+    const card = e.target.closest('[data-broker]');
+    if (card) openModal(card.dataset.broker);
+  });
+
+  // Privacy-Button
   document.getElementById('privacyBtn')?.addEventListener('click', handlePrivacyBtn);
 
-  // ── BEARBEITEN BUTTON → immer PIN, kein Session-Check ──
+  // Bearbeiten-Button
   document.getElementById('manageBtn')?.addEventListener('click', () => {
     pendingAction = 'manage';
     openPin();
   });
 
-  // ── PIN NUMPAD ──
+  // PIN-Numpad
   document.getElementById('pinPad')?.addEventListener('click', e => {
     const key = e.target.closest('[data-key]')?.dataset.key;
     if (!key) return;
     if (key === 'del') { pinDelete(); return; }
     pinInput(parseInt(key, 10));
   });
-
   document.getElementById('pinCancel')?.addEventListener('click', closePin);
 
-  // ── BROKER MODAL ──
+  // Broker-Modal
   document.getElementById('brokerModal')?.addEventListener('click', e => {
     if (e.target === document.getElementById('brokerModal')) closeModal();
   });
   document.getElementById('bmClose')?.addEventListener('click', closeModal);
 
-  // ── MANAGE MODAL ──
+  // Manage-Modal
   document.getElementById('manageModal')?.addEventListener('click', e => {
     if (e.target === document.getElementById('manageModal')) closeManage();
   });
@@ -673,16 +803,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderManageContent();
   });
 
-  // ── PIN OVERLAY ──
+  // PIN-Overlay
   document.getElementById('pinOverlay')?.addEventListener('click', e => {
     if (e.target === document.getElementById('pinOverlay')) closePin();
   });
 
-  // ── TASTATUR ──
+  // ESC
   document.addEventListener('keydown', e => {
-    const modal   = document.getElementById('brokerModal');
-    const manage  = document.getElementById('manageModal');
-    const pin     = document.getElementById('pinOverlay');
+    const modal  = document.getElementById('brokerModal');
+    const manage = document.getElementById('manageModal');
+    const pin    = document.getElementById('pinOverlay');
     if (e.key === 'Escape') {
       if (modal?.classList.contains('visible'))  { closeModal();  return; }
       if (manage?.classList.contains('visible')) { closeManage(); return; }

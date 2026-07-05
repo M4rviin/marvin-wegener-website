@@ -269,6 +269,25 @@
       transition: all 0.15s; flex-shrink: 0;
     }
     .bm-close:hover { border-color: var(--text); color: var(--text); }
+
+    /* ── UPLOAD MODAL ── */
+    .up-form { display: flex; flex-direction: column; gap: 2px; }
+    .up-error {
+      display: none;
+      font-size: 11px;
+      color: #e05555;
+      padding: 6px 0 2px;
+      letter-spacing: 0.02em;
+    }
+    .gm-input[type="file"] {
+      padding: 6px 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .gm-input[type="number"] { -moz-appearance: textfield; }
+    .gm-input[type="number"]::-webkit-outer-spin-button,
+    .gm-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    select.gm-input { cursor: pointer; }
   </style>
 </head>
 <body>
@@ -302,6 +321,51 @@
         <button class="pin-key" data-key="del" style="font-size:11px;letter-spacing:0.05em;">DEL</button>
       </div>
       <button class="pin-cancel" id="pinCancel">Abbrechen</button>
+    </div>
+  </div>
+
+  <!-- UPLOAD MODAL -->
+  <div class="gallery-modal-overlay" id="uploadModal">
+    <div class="gallery-modal">
+      <div class="gm-header">
+        <div>
+          <div class="gm-title">Foto hochladen</div>
+          <div class="gm-subtitle">Neues Bild zur Bibliothek hinzufügen</div>
+        </div>
+        <button class="bm-close" id="uploadModalClose">✕</button>
+      </div>
+      <form id="uploadForm" class="gm-body up-form">
+        <div class="gm-row">
+          <label class="gm-row-label" for="up-reisename">Reise *</label>
+          <input class="gm-input" id="up-reisename" list="up-reiselist"
+                 placeholder="z. B. Japan 2023" autocomplete="off">
+          <datalist id="up-reiselist"></datalist>
+        </div>
+        <div class="gm-row">
+          <label class="gm-row-label" for="up-kategorie">Kategorie</label>
+          <select class="gm-input" id="up-kategorie"></select>
+        </div>
+        <div class="gm-row">
+          <label class="gm-row-label" for="up-land">Land *</label>
+          <input class="gm-input" id="up-land" placeholder="z. B. Japan" autocomplete="off">
+        </div>
+        <div class="gm-row">
+          <label class="gm-row-label" for="up-ort">Ort</label>
+          <input class="gm-input" id="up-ort" placeholder="z. B. Kyoto" autocomplete="off">
+        </div>
+        <div class="gm-row">
+          <label class="gm-row-label" for="up-jahr">Jahr</label>
+          <input class="gm-input" id="up-jahr" type="number" placeholder="2024" min="1900" max="2099">
+        </div>
+        <div class="gm-row">
+          <label class="gm-row-label" for="up-foto">Foto</label>
+          <input class="gm-input" id="up-foto" type="file" accept="image/*">
+        </div>
+        <div class="up-error" id="upError"></div>
+      </form>
+      <div class="gm-footer">
+        <button class="gm-save" id="up-submit">Hinzufügen</button>
+      </div>
     </div>
   </div>
 
@@ -360,13 +424,21 @@
   <div class="cat-section" id="galerien">
     <div class="cat-label-row">
       <span class="cat-label-text">Galerien</span>
-      <button class="gallery-edit-btn" id="galleryEditBtn">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-        Bearbeiten
-      </button>
+      <div style="display:flex;gap:8px;">
+        <button class="gallery-edit-btn" id="uploadBtn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Hochladen
+        </button>
+        <button class="gallery-edit-btn" id="galleryEditBtn">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          Bearbeiten
+        </button>
+      </div>
     </div>
     <div class="categories" id="categoriesGrid">
       <!-- JS-rendered aus momente.js -->

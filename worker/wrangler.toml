@@ -1,0 +1,7 @@
+name = "mw-portfolio"
+main = "index.js"
+compatibility_date = "2026-01-01"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "1fa92b7fa1864f1a93c1d0d9076b96a3"

@@ -389,21 +389,35 @@
     .manage-input:focus { outline: none; border-color: var(--teal); }
 
     .manage-pos-header {
-      display: grid; grid-template-columns: 72px 1fr 88px 68px 80px 28px;
+      display: grid; grid-template-columns: 1fr 1fr 72px 96px 28px;
       gap: 6px; padding: 8px 0; border-bottom: 0.5px solid var(--border); margin-bottom: 4px;
     }
     .manage-pos-header span { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
 
     .manage-pos-row {
-      display: grid; grid-template-columns: 72px 1fr 88px 68px 80px 28px;
+      display: grid; grid-template-columns: 1fr 1fr 72px 96px 28px;
       gap: 6px; margin-bottom: 4px; align-items: center;
     }
+    .mp-ticker-wrap { display: flex; gap: 4px; align-items: center; min-width: 0; }
+    .mp-ticker-wrap .manage-pos-input { flex: 1; min-width: 0; }
+    .mp-lookup {
+      background: none; border: 0.5px solid var(--border);
+      color: var(--text-muted); cursor: pointer;
+      width: 26px; height: 28px; flex-shrink: 0;
+      font-size: 12px; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .mp-lookup:hover { border-color: var(--teal); color: var(--teal); }
+    .mp-lookup:disabled { opacity: 0.5; cursor: default; }
     .manage-pos-input {
       background: var(--surface); border: 0.5px solid var(--border);
       padding: 7px 8px; font-size: 12px; color: var(--text);
       font-family: var(--sans); width: 100%; transition: border-color 0.2s;
     }
     .manage-pos-input:focus { outline: none; border-color: var(--teal); }
+    .manage-pos-input[type="number"] { -moz-appearance: textfield; }
+    .manage-pos-input[type="number"]::-webkit-outer-spin-button,
+    .manage-pos-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
     .manage-pos-delete {
       background: none; border: 0.5px solid var(--border);
       color: var(--text-muted); cursor: pointer;
@@ -597,7 +611,7 @@
       <div class="manage-header">
         <div>
           <div class="manage-title">Portfolio bearbeiten</div>
-          <div class="manage-subtitle">Trade Republic · Scalable Capital</div>
+          <div class="manage-subtitle">Stückzahl &amp; Einstiegskurs eintragen</div>
         </div>
         <button class="bm-close" id="manageClose">✕</button>
       </div>
@@ -700,8 +714,10 @@
   <!-- CONTENT -->
   <div class="content">
 
-    <div class="section-label">Broker</div>
-    <!-- PLATZHALTER: Broker-Werte -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="section-label" style="margin-bottom:0">Broker</div>
+      <div id="priceStatus" style="font-size:10px;letter-spacing:0.06em;transition:color 0.3s"></div>
+    </div>
     <div class="broker-grid" id="brokerGrid">
       <div class="broker-card" data-broker="tr">
         <div class="broker-name">Trade Republic</div>

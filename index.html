@@ -466,22 +466,56 @@
     <!-- KENNZAHLEN STRIP -->
     <div class="stats-strip">
       <div class="stat-item">
-        <span class="stat-num">17</span>
+        <span class="stat-num" id="stat-laender">17</span>
         <span class="stat-desc">Länder</span>
       </div>
       <div class="stat-item">
-        <span class="stat-num">4.813</span>
-        <span class="stat-desc">Aufnahmen</span>
+        <span class="stat-num" id="stat-reisen">6</span>
+        <span class="stat-desc">Reisen</span>
       </div>
       <div class="stat-item">
-        <span class="stat-num">3</span>
-        <span class="stat-desc">Broker</span>
+        <span class="stat-num" id="stat-kaffee">—</span>
+        <span class="stat-desc">Tassen ☕</span>
       </div>
       <div class="stat-item">
-        <span class="stat-num">2019</span>
-        <span class="stat-desc">Dabei seit</span>
+        <span class="stat-num" id="stat-tage">—</span>
+        <span class="stat-desc">03.08.1998</span>
       </div>
     </div>
+    <script>
+      (function() {
+        // ── Länder + Reisen aus localStorage ──
+        try {
+          const saved = localStorage.getItem('mw-trips');
+          if (saved) {
+            const trips = JSON.parse(saved);
+            const countries = new Set();
+            trips.forEach(function(t) {
+              t.photos.forEach(function(p) {
+                if (p.country) countries.add(p.country.trim().toLowerCase());
+              });
+            });
+            if (countries.size > 0) document.getElementById('stat-laender').textContent = countries.size;
+            document.getElementById('stat-reisen').textContent = trips.length;
+          }
+        } catch(e) {}
+
+        // ── Tage seit Geburtstag ──
+        var birthday = new Date(1998, 7, 3); // 03.08.1998
+        var today    = new Date();
+        today.setHours(0, 0, 0, 0);
+        birthday.setHours(0, 0, 0, 0);
+        var tage = Math.floor((today - birthday) / 86400000);
+        document.getElementById('stat-tage').textContent = tage.toLocaleString('de-DE');
+
+        // ── Kaffeetassen (2 Tassen/Tag seit 18. Geburtstag) ──
+        var coffeeStart = new Date(2016, 7, 3); // 03.08.2016
+        coffeeStart.setHours(0, 0, 0, 0);
+        var tageMitKaffee = Math.max(0, Math.floor((today - coffeeStart) / 86400000));
+        var tassen = tageMitKaffee * 2; // ← Tassen pro Tag hier anpassen
+        document.getElementById('stat-kaffee').textContent = tassen.toLocaleString('de-DE');
+      })();
+    </script>
 
     <!-- LETZTE AUFNAHMEN -->
     <div class="preview-section">
