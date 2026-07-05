@@ -7,15 +7,36 @@
 // KV Namespace:
 //   CACHE          → Instrument-Metadaten-Cache (24h TTL)
 
-const CORS = {
+// Erlaubte Origins: nur deine eigene Domain + lokale Entwicklung
+const ALLOWED_ORIGINS = [
+  'https://marvin-wegener.de',
+  'https://www.marvin-wegener.de',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500',
+];
+
+function corsHeaders(origin) {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin':  allowed,
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Vary': 'Origin',
+    'Content-Type': 'application/json',
+  };
+}
+
+// Preisendpunkte sind öffentlich (nur Marktdaten) — kein Origin-Check nötig
+const PUBLIC_CORS = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
   'Content-Type': 'application/json',
 };
 
-const ok   = data          => new Response(JSON.stringify(data),        { headers: CORS });
-const fail = (msg, s=502)  => new Response(JSON.stringify({error:msg}), { status: s, headers: CORS });
+const ok     = (data, hdrs=PUBLIC_CORS) => new Response(JSON.stringify(data),        { headers: hdrs });
+const fail   = (msg, s=502)             => new Response(JSON.stringify({error:msg}),  { status: s, headers: PUBLIC_CORS });
+const deny   = ()                       => new Response(JSON.stringify({error:'Forbidden'}), { status: 403, headers: PUBLIC_CORS });
 
 // Erkennt europäische Börsenticker (Kurs bereits in EUR → kein USD-Umrechnung nötig)
 const EU_SUFFIX = /\.(DE|AS|PA|MC|CO|ST|MI|VX|HE|OL|LI|BR|LS|AT|BE|PR|WA)$/i;
@@ -96,8 +117,11 @@ export default {
     }
 
     // ── GET /etoro ──
-    // Positionen aus eToro API + Instrument-Metadaten (mit KV-Cache)
+    // Positionen aus eToro API — nur von erlaubten Origins abrufbar
     if (pathname === '/etoro') {
+      const origin = request.headers.get('Origin') ?? '';
+      if (!ALLOWED_ORIGINS.includes(origin)) return deny();
+
       if (!env.ETORO_API_KEY || !env.ETORO_USER_KEY) {
         return fail('eToro-Keys nicht konfiguriert', 503);
       }
@@ -180,7 +204,7 @@ export default {
         });
 
         const enriched = Object.values(grouped).map(({ _cost, ...p }) => p);
-        return ok({ positions: enriched, eurUsd });
+        return ok({ positions: enriched, eurUsd }, corsHeaders(origin));
 
       } catch(e) {
         return fail('eToro Fehler: ' + e.message);
