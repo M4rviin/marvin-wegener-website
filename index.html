@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marvin Wegener</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── STARTSEITE: Hero ── */
+    main { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+
+    .hero {
+      padding: 96px 0 84px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    @media (max-width: 700px) { .hero { grid-template-columns: 1fr; gap: 40px; padding: 56px 0 48px; } }
+
+    /* Eyebrow */
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 20px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 22px;
+      height: 0.5px;
+      background: var(--teal);
+      flex-shrink: 0;
+    }
+
+    .hero-text h2 {
+      font-family: var(--serif);
+      font-size: 54px;
+      font-weight: 400;
+      line-height: 1.18;
+      color: var(--text);
+      margin-bottom: 22px;
+    }
+    .hero-text h2 .accent { color: var(--teal); }
+    .hero-text p {
+      font-size: 14px;
+      color: var(--text-sec);
+      line-height: 1.78;
+      margin-bottom: 36px;
+      max-width: 360px;
+    }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* Bildplatzhalter */
+    .hero-image {
+      aspect-ratio: 4/5;
+      background: #111110;
+      border: 0.5px solid rgba(255,255,255,0.07);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+      color: rgba(255,255,255,0.18);
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .hero-image::before {
+      content: '';
+      position: absolute;
+      top: 20px; left: 20px;
+      width: 18px; height: 18px;
+      border-top: 0.5px solid rgba(255,255,255,0.14);
+      border-left: 0.5px solid rgba(255,255,255,0.14);
+    }
+    .hero-image::after {
+      content: '';
+      position: absolute;
+      bottom: 20px; right: 20px;
+      width: 18px; height: 18px;
+      border-bottom: 0.5px solid rgba(255,255,255,0.14);
+      border-right: 0.5px solid rgba(255,255,255,0.14);
+    }
+    .hero-image svg { opacity: 0.16; }
+    .hero-image-side {
+      position: absolute;
+      right: 18px; top: 50%;
+      transform: translateY(-50%) rotate(90deg);
+      font-size: 8px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.09);
+      white-space: nowrap;
+    }
+
+    /* ── STATS-STRIP ── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 32px 0;
+      border-top: 0.5px solid var(--border);
+      border-bottom: 0.5px solid var(--border);
+    }
+    @media (max-width: 600px) { .stats-strip { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+    .stat-item + .stat-item::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 10%; bottom: 10%;
+      width: 0.5px;
+      background: var(--border);
+    }
+    .stat-num {
+      font-family: var(--serif);
+      font-size: 30px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-desc {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* ── PREVIEW-SEKTION ── */
+    .preview-section { padding: 56px 0 0; }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 28px;
+    }
+    .preview-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .preview-link {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--teal);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s;
+    }
+    .preview-link:hover { opacity: 0.7; }
+    .preview-link svg { transition: transform 0.2s; }
+    .preview-link:hover svg { transform: translateX(3px); }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 600px) { .preview-grid { grid-template-columns: 1fr 1fr; } }
+
+    .preview-card {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      aspect-ratio: 4/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: transform 0.35s ease, box-shadow 0.35s ease, border-color var(--t);
+      text-decoration: none;
+    }
+    .preview-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+      border-color: transparent;
+    }
+    .preview-card-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .card-num {
+      position: absolute;
+      top: 13px; left: 14px;
+      font-family: var(--serif);
+      font-size: 11px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1;
+      z-index: 1;
+    }
+
+    .card-loc {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 28px 14px 13px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.65));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+    .preview-card:hover .card-loc { opacity: 1; }
+    .card-loc-name { color: rgba(255,255,255,0.9); }
+    .card-loc-year {
+      color: rgba(255,255,255,0.4);
+      font-family: var(--serif);
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    /* ── FEATURED DESTINATION ── */
+    .featured-section { padding: 8px 0 80px; }
+
+    .featured-card {
+      position: relative;
+      overflow: hidden;
+      height: 340px;
+      border-radius: 2px;
+      display: flex;
+      align-items: flex-end;
+      text-decoration: none;
+      transition: box-shadow 0.35s ease;
+    }
+    .featured-card:hover { box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+
+    /* Foto-Overlay-Gradient */
+    .featured-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 55%, transparent 100%);
+      z-index: 1;
+    }
+    /* Framing-Ecken */
+    .featured-card::after {
+      content: '';
+      position: absolute;
+      top: 20px; left: 20px;
+      width: 20px; height: 20px;
+      border-top: 0.5px solid rgba(255,255,255,0.2);
+      border-left: 0.5px solid rgba(255,255,255,0.2);
+      z-index: 2;
+    }
+
+    .featured-inner {
+      position: relative;
+      z-index: 2;
+      padding: 36px 44px;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    @media (max-width: 600px) { .featured-inner { flex-direction: column; align-items: flex-start; padding: 24px; } }
+
+    .featured-meta { display: flex; flex-direction: column; gap: 8px; }
+    .featured-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+    .featured-place {
+      font-family: var(--serif);
+      font-size: 48px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.95);
+      line-height: 1.08;
+    }
+    .featured-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.08em;
+    }
+
+    .featured-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border: 0.5px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.8);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transition: all 0.25s;
+      flex-shrink: 0;
+    }
+    .featured-cta:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+    .featured-cta svg { transition: transform 0.2s; }
+    .featured-cta:hover svg { transform: translateX(3px); }
+
+    /* ── PORTFOLIO-TEASER (außerhalb main, volle Breite) ── */
+    .portfolio-teaser {
+      background: #0f0e0c;
+      padding: 64px 0;
+    }
+    .pt-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 48px;
+    }
+    @media (max-width: 700px) { .pt-inner { flex-direction: column; align-items: flex-start; gap: 28px; } }
+
+    .pt-left { flex-shrink: 0; }
+
+    .pt-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #5DCAA5;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pt-eyebrow::before {
+      content: '';
+      width: 16px;
+      height: 0.5px;
+      background: #5DCAA5;
+      flex-shrink: 0;
+    }
+    .pt-title {
+      font-family: var(--serif);
+      font-size: 30px;
+      font-weight: 400;
+      color: rgba(240,237,230,0.92);
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .pt-subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+      margin-top: 5px;
+      letter-spacing: 0.04em;
+    }
+
+    .pt-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-shrink: 0;
+    }
+    @media (max-width: 700px) { .pt-right { flex-wrap: wrap; } }
+
+    .pt-stats {
+      display: flex;
+      border: 0.5px solid rgba(255,255,255,0.08);
+    }
+    .pt-stat {
+      padding: 20px 28px;
+      text-align: center;
+      border-right: 0.5px solid rgba(255,255,255,0.08);
+    }
+    .pt-stat:last-child { border-right: none; }
+    .pt-stat-num {
+      font-family: var(--serif);
+      font-size: 22px;
+      color: rgba(240,237,230,0.9);
+      margin-bottom: 5px;
+    }
+    .pt-stat-num.pos { color: #5DCAA5; }
+    .pt-stat-desc {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+    }
+
+    .pt-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border: 0.5px solid rgba(93,202,165,0.35);
+      color: #5DCAA5;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.25s;
+    }
+    .pt-cta:hover { background: rgba(93,202,165,0.08); border-color: #5DCAA5; }
+    .pt-cta svg { transition: transform 0.2s; }
+    .pt-cta:hover svg { transform: translateX(3px); }
+  </style>
+</head>
+<body>
+  <!-- Dark Mode FOUC-Schutz -->
+  <script>if(localStorage.getItem('mw-dark')==='1')document.body.classList.add('dark');</script>
+
+  <div id="site-header"></div>
+
+  <main>
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-text">
+        <div class="hero-eyebrow">Fotograf &amp; Investor</div>
+        <h2>Fotografie,<br>Orte &amp;<br><span class="accent">Finanzen.</span></h2>
+        <p>Eine persönliche Seite – kuratierte Reisefotos, ausgewählte Momente und ein Blick auf mein Investment-Portfolio.</p>
+        <div class="hero-actions">
+          <a href="momente.html" class="btn-primary">
+            Momente entdecken
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a href="portfolio.html" class="btn-secondary">Portfolio ansehen</a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <!-- PLATZHALTER: Profilfoto -->
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8">
+          <rect x="3" y="3" width="18" height="18" rx="1"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="M21 15l-5-5L5 21"/>
+        </svg>
+        Foto folgt
+        <div class="hero-image-side">Marvin Wegener</div>
+      </div>
+    </div>
+
+    <!-- KENNZAHLEN STRIP -->
+    <div class="stats-strip">
+      <div class="stat-item">
+        <span class="stat-num">17</span>
+        <span class="stat-desc">Länder</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">4.813</span>
+        <span class="stat-desc">Aufnahmen</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">3</span>
+        <span class="stat-desc">Broker</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">2019</span>
+        <span class="stat-desc">Dabei seit</span>
+      </div>
+    </div>
+
+    <!-- LETZTE AUFNAHMEN -->
+    <div class="preview-section">
+      <div class="preview-header">
+        <span class="preview-label">Letzte Aufnahmen</span>
+        <a href="momente.html" class="preview-link">
+          Alle ansehen
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+      <div class="preview-grid">
+        <a href="momente.html" class="preview-card">
+          <img class="preview-card-img" src="https://picsum.photos/seed/kyoto-2023/600/450" alt="Kyoto" loading="lazy">
+          <span class="card-num">01</span>
+          <div class="card-loc">
+            <span class="card-loc-name">Kyoto</span>
+            <span class="card-loc-year">2023</span>
+          </div>
+        </a>
+        <a href="momente.html" class="preview-card">
+          <img class="preview-card-img" src="https://picsum.photos/seed/dolomiten-2024/600/450" alt="Dolomiten" loading="lazy">
+          <span class="card-num">02</span>
+          <div class="card-loc">
+            <span class="card-loc-name">Dolomiten</span>
+            <span class="card-loc-year">2024</span>
+          </div>
+        </a>
+        <a href="momente.html" class="preview-card">
+          <img class="preview-card-img" src="https://picsum.photos/seed/lissabon-2022/600/450" alt="Lissabon" loading="lazy">
+          <span class="card-num">03</span>
+          <div class="card-loc">
+            <span class="card-loc-name">Lissabon</span>
+            <span class="card-loc-year">2022</span>
+          </div>
+        </a>
+        <a href="momente.html" class="preview-card">
+          <img class="preview-card-img" src="https://picsum.photos/seed/santorini-2023/600/450" alt="Santorini" loading="lazy">
+          <span class="card-num">04</span>
+          <div class="card-loc">
+            <span class="card-loc-name">Santorini</span>
+            <span class="card-loc-year">2023</span>
+          </div>
+        </a>
+        <a href="momente.html" class="preview-card">
+          <img class="preview-card-img" src="https://picsum.photos/seed/amsterdam-2022/600/450" alt="Amsterdam" loading="lazy">
+          <span class="card-num">05</span>
+          <div class="card-loc">
+            <span class="card-loc-name">Amsterdam</span>
+            <span class="card-loc-year">2022</span>
+          </div>
+        </a>
+        <a href="momente.html" class="preview-card">
+          <img class="preview-card-img" src="https://picsum.photos/seed/kopenhagen-2024/600/450" alt="Kopenhagen" loading="lazy">
+          <span class="card-num">06</span>
+          <div class="card-loc">
+            <span class="card-loc-name">Kopenhagen</span>
+            <span class="card-loc-year">2024</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- FEATURED DESTINATION -->
+    <div class="featured-section">
+      <a href="momente.html" class="featured-card">
+        <img src="https://picsum.photos/seed/dolomiten-alps-hero/1200/400" alt="Dolomiten" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
+        <div class="featured-inner">
+          <div class="featured-meta">
+            <span class="featured-eyebrow">Zuletzt unterwegs</span>
+            <h3 class="featured-place">Dolomiten</h3>
+            <span class="featured-sub">Südtirol · Sommer 2024</span>
+          </div>
+          <span class="featured-cta">
+            Fotos ansehen
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </span>
+        </div>
+      </a>
+    </div>
+  </main>
+
+  <!-- PORTFOLIO-TEASER (volle Breite, außerhalb main) -->
+  <div class="portfolio-teaser">
+    <div class="pt-inner">
+      <div class="pt-left">
+        <div class="pt-eyebrow">Investment Portfolio</div>
+        <div class="pt-title">3&thinsp;Broker.</div>
+        <div class="pt-subtitle">Täglich im Blick.</div>
+      </div>
+      <div class="pt-right">
+        <div class="pt-stats">
+          <div class="pt-stat">
+            <div class="pt-stat-num pos">+18,4 %</div>
+            <div class="pt-stat-desc">Performance</div>
+          </div>
+          <div class="pt-stat">
+            <div class="pt-stat-num">34</div>
+            <div class="pt-stat-desc">Positionen</div>
+          </div>
+          <div class="pt-stat">
+            <div class="pt-stat-num">€&thinsp;···</div>
+            <div class="pt-stat-desc">Gesamtwert</div>
+          </div>
+        </div>
+        <a href="portfolio.html" class="pt-cta">
+          Portfolio ansehen
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
