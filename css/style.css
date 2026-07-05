@@ -1,0 +1,225 @@
+/* ── CSS VARIABLEN ── */
+:root {
+  --bg: #f5f4f0;
+  --surface: #fff;
+  --text: #1a1a18;
+  --text-sec: #6b6b67;
+  --text-muted: #9a9a96;
+  --border: rgba(0, 0, 0, 0.08);
+  --teal: #1D9E75;
+  --teal-dark: #0F6E56;
+  --serif: Georgia, 'Times New Roman', serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --t: 0.3s ease;
+}
+
+body.dark {
+  --bg: #141412;
+  --surface: #1e1e1c;
+  --text: #e8e7e3;
+  --text-sec: #9a9a96;
+  --text-muted: #5f5e5a;
+  --border: rgba(255, 255, 255, 0.08);
+  --teal: #5DCAA5;
+  --teal-dark: #9FE1CB;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  transition: background var(--t), color var(--t);
+}
+
+/* ── HEADER ── */
+/* Sticky auf dem Wrapper, nicht dem inneren <header> — sonst bricht der Containing Block */
+#site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+#site-header header {
+  border-bottom: 0.5px solid var(--border);
+  background: var(--bg);
+  transition: background var(--t);
+}
+
+.header-inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 2rem;
+  height: 64px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Navigation von der Mitte aus — beide Seiten zeigen zum Logo hin */
+nav.nav-left  { display: flex; gap: 2rem; justify-content: flex-end; }
+nav.nav-right { display: flex; gap: 2rem; justify-content: flex-start; align-items: center; }
+
+nav a {
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-sec);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--t);
+}
+nav a:hover, nav a.active { color: var(--teal); }
+
+.logo { text-align: center; padding: 0 2rem; }
+.logo h1 {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: var(--text);
+}
+.logo p {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.toggle-btn {
+  background: none;
+  border: 0.5px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  cursor: pointer;
+  color: var(--text-sec);
+  font-size: 11px;
+  font-family: var(--sans);
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--t);
+}
+.toggle-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+/* ── BUTTONS (geteilt) ── */
+.btn-primary {
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 2px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.85; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-sec);
+  border: 0.5px solid var(--border);
+  padding: 10px 22px;
+  border-radius: 2px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+
+/* ── FOOTER ── */
+.footer-wrap { border-top: 0.5px solid var(--border); }
+footer {
+  padding: 24px 2rem;
+  display: flex;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── PIN MODAL (geteilt — portfolio & momente) ── */
+.pin-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.pin-overlay.visible { opacity: 1; pointer-events: all; }
+.pin-modal {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  padding: 36px 40px;
+  min-width: 300px;
+  text-align: center;
+}
+.pin-modal h3 { font-family: var(--serif); font-size: 20px; font-weight: 400; margin-bottom: 8px; }
+.pin-modal p  { font-size: 12px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.5; }
+.pin-dots { display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; }
+.pin-dot  {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 0.5px solid var(--border); background: transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.pin-dot.filled { background: var(--teal); border-color: var(--teal); }
+.pin-dot.error  { background: #c0524a;     border-color: #c0524a;     }
+.pin-pad {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 8px; margin-bottom: 16px;
+}
+.pin-key {
+  background: none; border: 0.5px solid var(--border);
+  padding: 14px; font-size: 16px; font-family: var(--serif);
+  color: var(--text); cursor: pointer; transition: all 0.15s; border-radius: 2px;
+}
+.pin-key:hover  { border-color: var(--teal); color: var(--teal); }
+.pin-key:active { background: var(--teal); color: #fff; border-color: var(--teal); }
+.pin-cancel {
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-muted); background: none; border: none;
+  cursor: pointer; font-family: var(--sans); padding: 8px; transition: color 0.15s;
+}
+.pin-cancel:hover { color: var(--text); }
+.pin-error-msg { font-size: 11px; color: #c0524a; height: 16px; margin-bottom: 4px; letter-spacing: 0.05em; }
+
+/* ── SECTION LABEL (geteilt) ── */
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 0.5px;
+  background: var(--border);
+}
